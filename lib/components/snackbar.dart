@@ -11,7 +11,7 @@ void showSnackBar({dynamic message, dynamic context}) {
         ),
       ),
       duration: Duration(seconds: 2),
-      backgroundColor: AppColor.elephant,
+      backgroundColor: AppColor.black,
     ),
   );
 }

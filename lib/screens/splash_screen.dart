@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:ppmt/auth_page.dart';
 
 class Splash extends StatefulWidget {
   const Splash({super.key});
@@ -34,11 +33,7 @@ class _SplashState extends State<Splash> {
     Timer(
       Duration(seconds: 5),
       () {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => AuthPage(),
-          ),
-        );
+        Navigator.of(context).pushReplacementNamed('/auth');
       },
     );
   }

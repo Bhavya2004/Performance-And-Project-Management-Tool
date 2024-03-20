@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/components/textfield.dart';
 import 'package:ppmt/constants/color.dart';
-import 'package:ppmt/screens/next_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({Key? key}) : super(key: key);
@@ -59,12 +59,32 @@ class _SignInScreenState extends State<SignInScreen> {
       }
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => NextScreen(),
-        ),
-      );
+      // Check if email is admin email, if yes navigate to AdminDashboard, else navigate to UserDashboard
+      User? user = FirebaseAuth.instance.currentUser;
+      dynamic kk = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .get()
+          .then((DocumentSnapshot documentSnapshot) {
+        if (documentSnapshot.exists) {
+          if (documentSnapshot.get('role') == "admin") {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/admin_dashboard',
+              (_) => false, // Removes all routes below '/admin_dashboard'
+            );
+          } else {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/user_dashboard',
+              (_) => false, // Removes all routes below '/user_dashboard'
+            );
+          }
+        } else {
+          print('Document does not exist on the database');
+        }
+      });
+      print(user.uid);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-credential') {
         // show error to user
@@ -80,70 +100,68 @@ class _SignInScreenState extends State<SignInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Form(
-              key: _formSignInKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 50),
-                  // logo
-                  const Icon(
-                    Icons.lock,
-                    size: 100,
+      body: Center(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Form(
+            key: _formSignInKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 50),
+                // logo
+                const Icon(
+                  Icons.lock,
+                  size: 100,
+                ),
+                const SizedBox(height: 50),
+                // welcome back, you've been missed!
+                Text(
+                  'Welcome back you\'ve been missed!',
+                  style: TextStyle(
+                    color: AppColor.elephant,
+                    fontSize: 16,
                   ),
-                  const SizedBox(height: 50),
-                  // welcome back, you've been missed!
-                  Text(
-                    'Welcome back you\'ve been missed!',
-                    style: TextStyle(
-                      color: AppColor.elephant,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 25),
-                  // email textfield
-                  textFormField(
-                    controller: emailController,
-                    obscureText: false,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "Email is required";
-                      }
-                      return null;
-                    },
-                    keyboardType: TextInputType.text,
-                    labelText: 'Email',
-                  ),
-                  const SizedBox(height: 10),
-                  // password textfield
-                  textFormField(
-                    controller: passwordController,
-                    obscureText: true,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "Password is required";
-                      }
-                      return null;
-                    },
-                    keyboardType: TextInputType.text,
-                    labelText: 'Password',
-                  ),
+                ),
+                const SizedBox(height: 25),
+                // email textfield
+                textFormField(
+                  controller: emailController,
+                  obscureText: false,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "Email is required";
+                    }
+                    return null;
+                  },
+                  keyboardType: TextInputType.text,
+                  labelText: 'Email',
+                ),
+                const SizedBox(height: 10),
+                // password textfield
+                textFormField(
+                  controller: passwordController,
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "Password is required";
+                    }
+                    return null;
+                  },
+                  keyboardType: TextInputType.text,
+                  labelText: 'Password',
+                ),
 
-                  const SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-                  const SizedBox(height: 25),
-                  // sign in button
-                  button(
-                    buttonName: "Login",
-                    onPressed: signUserIn,
-                  ),
-                  const SizedBox(height: 50),
-                ],
-              ),
+                const SizedBox(height: 25),
+                // sign in button
+                button(
+                  buttonName: "Login",
+                  onPressed: signUserIn,
+                ),
+                const SizedBox(height: 50),
+              ],
             ),
           ),
         ),
