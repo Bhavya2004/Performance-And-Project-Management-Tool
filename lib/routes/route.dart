@@ -9,12 +9,17 @@ import 'package:ppmt/screens/user_dashboard.dart';
 import 'package:ppmt/screens/users.dart';
 
 Map<String, Widget Function(BuildContext)> route = {
-  '/' : (context) => Splash(),
-  '/auth' : (context) => AuthPage(),
+  '/': (context) => Splash(),
+  '/auth': (context) => AuthPage(),
   '/signin': (context) => SignInScreen(),
   '/admin_dashboard': (context) => AdminDashboard(),
   '/user_dashboard': (context) => UserDashboard(),
-  "/add_user": (context) => AddUser(),
+  "/add_user": (context) => AddUser(
+        name: "",
+        surname: "",
+        phoneNumber: "",
+        email: "",
+      ),
   "/user_list": (context) => Users(),
   "/user": (context) => User(),
 };

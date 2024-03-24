@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:ppmt/screens/add_user.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserDashboard extends StatelessWidget {
   UserDashboard({Key? key});
@@ -15,7 +17,7 @@ class UserDashboard extends StatelessWidget {
             itemBuilder: (BuildContext context) {
               return [
                 PopupMenuItem(
-                  child: Text('Option 1'),
+                  child: Text('My Profile'),
                   value: 1,
                 ),
                 PopupMenuItem(
@@ -30,9 +32,31 @@ class UserDashboard extends StatelessWidget {
                 ),
               ];
             },
-            onSelected: (value) {
-              // Handle selection from the dropdown here
-              print('Selected option: $value');
+            onSelected: (value) async {
+              if (value == 1) {
+                // Fetch user details from Firestore
+                String uid = FirebaseAuth.instance.currentUser!.uid;
+                DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(uid)
+                    .get();
+                if (userSnapshot.exists) {
+                  print(userSnapshot.exists);
+                  // Navigate to AddUser page and pass user's details
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AddUser(
+                        email: userSnapshot['email'],
+                        name: userSnapshot['name'],
+                        surname: userSnapshot['surname'],
+                        phoneNumber: userSnapshot['phoneNumber'],
+                        // Add other details here as needed
+                      ),
+                    ),
+                  );
+                }
+              }
             },
           ),
         ],
