@@ -12,6 +12,9 @@ class _UsersState extends State<Users> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Users'),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -28,7 +31,6 @@ class _UsersState extends State<Users> {
                 if (snapshot.hasError) {
                   return Text('Error: ${snapshot.error}');
                 }
-
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
                     child: CircularProgressIndicator(),

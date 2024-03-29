@@ -11,10 +11,16 @@ class _MessageState extends State<Message> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Messages'),
+      ),
       body: Center(
         child: Text(
-          "Notification Page",
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
+          "No Notification",
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+          ),
         ),
       ),
     );

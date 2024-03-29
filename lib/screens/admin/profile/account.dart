@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 
-class Projects extends StatefulWidget {
-  const Projects({super.key});
+class Account extends StatefulWidget {
+  const Account({super.key});
 
   @override
-  State<Projects> createState() => _ProjectsState();
+  State<Account> createState() => _AccountState();
 }
 
-class _ProjectsState extends State<Projects> {
+class _AccountState extends State<Account> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('My Profile'),
+      ),
       body: Center(
         child: Text(
-          "Projects Page",
+          "Account Page",
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
         ),
       ),
