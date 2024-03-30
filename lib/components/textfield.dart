@@ -9,11 +9,14 @@ Widget textFormField(
     required String labelText,
     Widget? prefixIcon,
     required bool obscureText,
-    dynamic inputFormatNumber}) {
+    dynamic inputFormatNumber,
+    bool enabled = true}) {
+  // Add enabled parameter with default value true
   return Padding(
     padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
     child: Focus(
       child: TextFormField(
+        enabled: enabled, // Pass the enabled parameter value
         obscureText: obscureText,
         validator: validator,
         inputFormatters: [LengthLimitingTextInputFormatter(inputFormatNumber)],

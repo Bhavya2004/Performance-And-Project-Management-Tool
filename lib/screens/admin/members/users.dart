@@ -22,9 +22,9 @@ class _UsersState extends State<Users> {
               stream: FirebaseFirestore.instance
                   .collection('users')
                   .where(
-                'role',
-                isEqualTo: 'user',
-              ) // Filter by role 'user'
+                    'role',
+                    isEqualTo: 'user',
+                  ) // Filter by role 'user'
                   .snapshots(),
               builder: (BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -38,10 +38,10 @@ class _UsersState extends State<Users> {
                 }
 
                 return ListView(
-                  children: snapshot.data!.docs
-                      .map((DocumentSnapshot document) {
+                  children:
+                      snapshot.data!.docs.map((DocumentSnapshot document) {
                     Map<String, dynamic> data =
-                    document.data() as Map<String, dynamic>;
+                        document.data() as Map<String, dynamic>;
                     return GestureDetector(
                       onTap: () {
                         Navigator.of(context).pushNamed("/user");
