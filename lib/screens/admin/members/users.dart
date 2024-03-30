@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ppmt/screens/admin/members/assignSkillLevel.dart';
 
 class Users extends StatefulWidget {
   const Users({super.key});
@@ -44,7 +45,12 @@ class _UsersState extends State<Users> {
                         document.data() as Map<String, dynamic>;
                     return GestureDetector(
                       onTap: () {
-                        Navigator.of(context).pushNamed("/user");
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                AssignSkillLevel(userId: document.id),
+                          ),
+                        );
                       },
                       child: ListTile(
                         title: Text(data['email']),
