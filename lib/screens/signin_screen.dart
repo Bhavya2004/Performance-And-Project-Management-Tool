@@ -61,7 +61,7 @@ class _SignInScreenState extends State<SignInScreen> {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       // Check if email is admin email, if yes navigate to AdminDashboard, else navigate to UserDashboard
       User? user = FirebaseAuth.instance.currentUser;
-      dynamic kk = FirebaseFirestore.instance
+      FirebaseFirestore.instance
           .collection('users')
           .doc(user!.uid)
           .get()

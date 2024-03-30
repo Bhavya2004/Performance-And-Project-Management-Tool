@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ppmt/auth_page.dart';
 import 'package:ppmt/screens/admin/master/level/add_level.dart';
 import 'package:ppmt/screens/admin/master/master.dart';
+import 'package:ppmt/screens/admin/master/skill/add_skill.dart';
 import 'package:ppmt/screens/admin/members/add_user.dart';
 import 'package:ppmt/screens/admin/admin_dashboard.dart';
 import 'package:ppmt/screens/admin/master/level/level_list.dart';
@@ -15,7 +16,6 @@ import 'package:ppmt/screens/admin/members/user.dart';
 import 'package:ppmt/screens/user/user_dashboard.dart';
 import 'package:ppmt/screens/admin/members/users.dart';
 
-
 Map<String, Widget Function(BuildContext)> route = {
   '/': (context) => Splash(),
   '/auth': (context) => AuthPage(),
@@ -23,11 +23,11 @@ Map<String, Widget Function(BuildContext)> route = {
   '/admin_dashboard': (context) => AdminDashboard(),
   '/user_dashboard': (context) => UserDashboard(),
   "/add_user": (context) => AddUser(
-    name: "",
-    surname: "",
-    phoneNumber: "",
-    email: "",
-  ),
+        name: "",
+        surname: "",
+        phoneNumber: "",
+        email: "",
+      ),
   "/message": (context) => Message(),
   "/profile": (context) => Account(),
   "/master": (context) => Master(),
@@ -36,9 +36,9 @@ Map<String, Widget Function(BuildContext)> route = {
   "/user": (context) => User(),
   "/level_list": (context) => LevelListPage(),
   "/add_level": (context) => AddLevel(
-    levelID: "",
-    levelName: "",
-  ),
+        levelID: "",
+        levelName: "",
+      ),
   "/skill_list": (context) => SkillListPage(),
-  // "/add_skill": (context) => (),
+  "/add_skill": (context) => AddSkill(skillName: "", skillID: ""),
 };

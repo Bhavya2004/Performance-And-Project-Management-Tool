@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/textfield.dart';
@@ -68,85 +67,104 @@ class _AddLevelState extends State<AddLevel> {
 
   Future<void> addLevel() async {
     if (_formSignInKey.currentState!.validate()) {
-      if (widget.levelName.isNotEmpty) {
-        // Update existing level
-        await updateLevelDetails();
-      } else {
-        // Add new level
-        await addLevelDetails(level: levelController.text.toString());
-        // Show success message
+      try {
+        if (widget.levelName.isNotEmpty) {
+          // Update existing level
+          await updateLevelDetails();
+        } else {
+          // Add new level
+          await addLevelDetails(level: levelController.text.toString());
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Level Added Successfully'),
+            ),
+          );
+        }
+        // Navigate back to previous screen
+        Navigator.of(context).pop();
+      } catch (e) {
+        // Handle any errors that occur during level addition or update
+        print('Error: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Level Added Successfully'),
+            content: Text('Error: $e'),
           ),
         );
       }
-      // Navigate back to previous screen
-      Navigator.of(context).pop();
     }
   }
 
   Future<void> addLevelDetails({required String level}) async {
-    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-    CollectionReference ref = firebaseFirestore.collection('levels');
+    try {
+      FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+      CollectionReference ref = firebaseFirestore.collection('levels');
 
-    // Get the last assigned levelID from Firestore
-    int lastLevelID = await getLastLevelID();
-    int newLevelID = lastLevelID + 1;
+      // Get the last assigned levelID from Firestore
+      int lastLevelID = await getLastLevelID();
+      int newLevelID = lastLevelID + 1;
 
-    // Add the new level with the incremented levelID
-    await ref.add({'levelID': newLevelID.toString(), 'levelName': level});
+      // Add the new level with the incremented levelID
+      await ref.add({'levelID': newLevelID.toString(), 'levelName': level});
+    } catch (e) {
+      throw ('Error adding level: $e');
+    }
   }
 
   Future<int> getLastLevelID() async {
-    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-    QuerySnapshot<Map<String, dynamic>> snapshot = await firebaseFirestore
-        .collection('levels')
-        .orderBy('levelID', descending: true)
-        .limit(1)
-        .get();
+    try {
+      FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+      QuerySnapshot<Map<String, dynamic>> snapshot = await firebaseFirestore
+          .collection('levels')
+          .orderBy('levelID', descending: true)
+          .limit(1)
+          .get();
 
-    if (snapshot.docs.isNotEmpty) {
-      String? levelIDString = snapshot.docs.first['levelID'] as String?;
-      if (levelIDString != null && int.tryParse(levelIDString) != null) {
-        return int.parse(levelIDString);
+      if (snapshot.docs.isNotEmpty) {
+        String? levelIDString = snapshot.docs.first['levelID'] as String?;
+        if (levelIDString != null && int.tryParse(levelIDString) != null) {
+          return int.parse(levelIDString);
+        }
       }
+      // If no valid levelID is found, return 0
+      return 0;
+    } catch (e) {
+      throw ('Error getting last level ID: $e');
     }
-    // If no valid levelID is found, return 0
-    return 0;
   }
 
   Future<void> updateLevelDetails() async {
-    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-    CollectionReference ref = firebaseFirestore.collection('levels');
-
-    // Convert widget.levelID to a string
-    String levelID = widget.levelID.toString();
-    print(levelID);
     try {
-      // Check if the document with the provided levelID exists
-      DocumentSnapshot<Object?> levelSnapshot = await ref.doc(levelID).get();
-      print(levelSnapshot);
-      if (levelSnapshot.exists) {
-        // Document exists, update its levelName
-        await ref.doc(levelID).update({'levelName': levelController.text});
-        // Show success message or perform any additional actions
+      FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+      CollectionReference ref = firebaseFirestore.collection('levels');
+      QuerySnapshot<Object?> querySnapshot =
+          await ref.where('levelID', isEqualTo: widget.levelID).get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        DocumentSnapshot<Object?> levelSnapshot = querySnapshot.docs.first;
+
+        Map<String, dynamic>? levelData =
+            levelSnapshot.data() as Map<String, dynamic>?;
+
+        if (levelData != null) {
+          // Update levelName field with the new value
+          levelData['levelName'] = levelController.text;
+
+          // Update the document with the modified data
+          await levelSnapshot.reference.update(levelData);
+
+          print('Level updated successfully');
+          // Show success message or perform any additional actions
+        } else {
+          // Document data is null or empty
+          throw ('Document data is null or empty');
+        }
       } else {
-        // Document does not exist, show an error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: Level with ID $levelID not found.'),
-          ),
-        );
+        // No document found with the specified levelID
+        throw ('Level with ID ${widget.levelID} not found.');
       }
     } catch (e) {
-      // Handle any potential errors (e.g., network issues)
-      print('Error updating level details: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error updating level details: $e'),
-        ),
-      );
+      throw ('Error updating level details: $e');
     }
   }
 }
