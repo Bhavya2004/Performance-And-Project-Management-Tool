@@ -31,7 +31,6 @@ class addSkillState extends State<AddSkill> {
         title: Text('Add Skill'),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.0),
         child: Form(
           key: _formKey,
           child: Column(

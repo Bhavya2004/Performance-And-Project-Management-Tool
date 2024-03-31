@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:ppmt/screens/admin/members/assignSkillLevel.dart';
+import 'package:ppmt/screens/admin/members/skill_level.dart';
 
 class Users extends StatefulWidget {
-  const Users({super.key});
+  const Users({Key? key});
 
   @override
   State<Users> createState() => _UsersState();
@@ -25,7 +25,7 @@ class _UsersState extends State<Users> {
                   .where(
                     'role',
                     isEqualTo: 'user',
-                  ) // Filter by role 'user'
+                  )
                   .snapshots(),
               builder: (BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -37,24 +37,27 @@ class _UsersState extends State<Users> {
                     child: CircularProgressIndicator(),
                   );
                 }
-
                 return ListView(
                   children:
                       snapshot.data!.docs.map((DocumentSnapshot document) {
                     Map<String, dynamic> data =
                         document.data() as Map<String, dynamic>;
+                    print("UserID: ${document.id}");
                     return GestureDetector(
                       onTap: () {
-                        Navigator.of(context).push(
+                        print("UserID: ${document.id}");
+                        Navigator.push(
+                          context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                AssignSkillLevel(userId: document.id),
+                            builder: (context) => SkillLevel(
+                              UserID: document.id,
+                              UserName: data['name'],
+                            ),
                           ),
                         );
                       },
                       child: ListTile(
-                        title: Text(data['email']),
-                        subtitle: Text(data['role']),
+                        title: Text(data['name']),
                       ),
                     );
                   }).toList(),
@@ -62,16 +65,15 @@ class _UsersState extends State<Users> {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pushNamed('/add_user');
-              },
-              child: Text("Add Member"),
-            ),
-          )
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.of(context).pushNamed('/add_user');
+        },
+        label: Text(
+          "Add Member",
+        ),
       ),
     );
   }

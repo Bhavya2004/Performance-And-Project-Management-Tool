@@ -3,10 +3,12 @@ import 'package:ppmt/auth_page.dart';
 import 'package:ppmt/screens/admin/master/level/add_level.dart';
 import 'package:ppmt/screens/admin/master/master.dart';
 import 'package:ppmt/screens/admin/master/skill/add_skill.dart';
+import 'package:ppmt/screens/admin/members/add_skill_level.dart';
 import 'package:ppmt/screens/admin/members/add_user.dart';
 import 'package:ppmt/screens/admin/admin_dashboard.dart';
 import 'package:ppmt/screens/admin/master/level/level_list.dart';
 import 'package:ppmt/screens/admin/master/skill/skill_list.dart';
+import 'package:ppmt/screens/admin/members/skill_level.dart';
 import 'package:ppmt/screens/admin/message/message.dart';
 import 'package:ppmt/screens/admin/profile/account.dart';
 import 'package:ppmt/screens/admin/projects/projects.dart';
@@ -41,4 +43,11 @@ Map<String, Widget Function(BuildContext)> route = {
       ),
   "/skill_list": (context) => SkillListPage(),
   "/add_skill": (context) => AddSkill(skillName: "", skillID: ""),
+  '/add_skill_level': (context) => AssignSkillLevel(
+        userId: "",
+      ),
+  '/skill_level': (context) => SkillLevel(
+    UserID: "",
+    UserName: "",
+  ),
 };

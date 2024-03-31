@@ -1,5 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/components/snackbar.dart';
 
 class AssignSkillLevel extends StatefulWidget {
@@ -42,12 +42,39 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
     setState(() {});
   }
 
-  void assignSkillAndLevel() {
-    _firestore.collection('userSkillsLevels').doc(widget.userId).set({
-      'userId': widget.userId,
-      'skillName': _selectedSkill,
-      'levelName': _selectedLevel,
-    });
+  void assignSkillAndLevel() async {
+    // Check if the combination already exists
+    QuerySnapshot existingRecords = await _firestore
+        .collection('userSkillsLevels')
+        .where('userId', isEqualTo: widget.userId)
+        .where('skillName', isEqualTo: _selectedSkill)
+        .where('levelName', isEqualTo: _selectedLevel)
+        .get();
+
+    // If any existing records are found, show an error message
+    if (existingRecords.docs.isNotEmpty) {
+      print("exist");
+      showSnackBar(
+        message: 'Skill and level combination already exists for this user',
+        context: context,
+      );
+    } else {
+      // If the combination doesn't exist, add the new record
+      // Add the new record
+      await _firestore.collection('userSkillsLevels').add({
+        'userId': widget.userId,
+        'skillName': _selectedSkill,
+        'levelName': _selectedLevel,
+      });
+
+      Navigator.pop(context); // Navigate back to the Users screen
+
+      // Show a snackbar
+      showSnackBar(
+        message: 'Skill and level assigned successfully',
+        context: context,
+      );
+    }
   }
 
   @override
@@ -90,23 +117,9 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
               );
             }).toList(),
             ElevatedButton(
-              onPressed: () async {
-                await FirebaseFirestore.instance
-                    .collection('userSkillsLevels')
-                    .add({
-                  'userId': widget.userId,
-                  'skill': _selectedSkill,
-                  'level': _selectedLevel,
-                });
-
-                Navigator.pop(context); // Navigate back to the Users screen
-
-                // Show a snackbar
-                showSnackBar(
-                  message: 'Skill and level assigned successfully',
-                  context: context,
-                );
-              },
+              onPressed: _selectedSkill != null && _selectedLevel != null
+                  ? assignSkillAndLevel
+                  : null,
               child: Text('Assign Skill and Level'),
             ),
           ],
