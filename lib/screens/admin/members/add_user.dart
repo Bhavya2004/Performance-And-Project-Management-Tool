@@ -60,7 +60,7 @@ class _AddUserState extends State<AddUser> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text("Add User"),
+        title: widget.isProfileEditing ? Text("Update User") : Text("Add User"),
       ),
       body: SingleChildScrollView(
         child: Column(
