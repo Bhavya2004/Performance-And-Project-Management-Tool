@@ -26,14 +26,20 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
 
   void fetchSkillsAndLevels() async {
     // Fetch skills
-    QuerySnapshot skillsSnapshot = await _firestore.collection('skills').get();
+    QuerySnapshot skillsSnapshot = await _firestore
+        .collection('skills')
+        .where('isDisabled', isEqualTo: false)
+        .get();
     _skills = skillsSnapshot.docs
         .map((doc) => doc['skillName'])
         .toList()
         .cast<String>();
 
     // Fetch levels
-    QuerySnapshot levelsSnapshot = await _firestore.collection('levels').get();
+    QuerySnapshot levelsSnapshot = await _firestore
+        .collection('levels')
+        .where('isDisabled', isEqualTo: false)
+        .get();
     _levels = levelsSnapshot.docs
         .map((doc) => doc['levelName'])
         .toList()

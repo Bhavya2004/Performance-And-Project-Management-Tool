@@ -104,8 +104,12 @@ class _AddLevelState extends State<AddLevel> {
       int lastLevelID = await getLastLevelID();
       int newLevelID = lastLevelID + 1;
 
-      // Add the new level with the incremented levelID
-      await ref.add({'levelID': newLevelID.toString(), 'levelName': level});
+      // Add the new level with the incremented levelID and isDisabled set to false
+      await ref.add({
+        'levelID': newLevelID.toString(),
+        'levelName': level,
+        'isDisabled': false // Set isDisabled to false by default
+      });
     } catch (e) {
       throw ('Error adding level: $e');
     }
@@ -149,6 +153,8 @@ class _AddLevelState extends State<AddLevel> {
         if (levelData != null) {
           // Update levelName field with the new value
           levelData['levelName'] = levelController.text;
+          // Update isDisabled field with the new value
+          levelData['isDisabled'] = false; // or true, depending on your needs
 
           // Update the document with the modified data
           await levelSnapshot.reference.update(levelData);

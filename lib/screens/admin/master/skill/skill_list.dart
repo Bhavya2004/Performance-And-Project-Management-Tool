@@ -22,36 +22,62 @@ class SkillListPage extends StatelessWidget {
             );
           }
 
+          var activeItems = snapshot.data!.docs
+              .where((doc) => doc['isDisabled'] != true)
+              .toList();
+          var disabledItems = snapshot.data!.docs
+              .where((doc) => doc['isDisabled'] == true)
+              .toList();
+
+          ListTile buildTile(DocumentSnapshot document, bool isDisabled) {
+            Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+            return ListTile(
+              tileColor: isDisabled ? Colors.grey : null,
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(data['skillName']),
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: isDisabled
+                            ? null
+                            : () async {
+                                String skillName = data['skillName'];
+                                String skillID = document.id;
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AddSkill(
+                                      skillName: skillName,
+                                      skillID: skillID,
+                                    ),
+                                  ),
+                                );
+                              },
+                        child: Icon(Icons.edit),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: isDisabled
+                            ? null
+                            : () async {
+                                await firebaseFirestore
+                                    .collection('skills')
+                                    .doc(document.id)
+                                    .update({'isDisabled': true});
+                              },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }
+
           return ListView(
-            children: snapshot.data!.docs.map((DocumentSnapshot document) {
-              Map<String, dynamic> data =
-                  document.data() as Map<String, dynamic>;
-              return ListTile(
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(data['skillName']),
-                    GestureDetector(
-                      onTap: () async {
-                        // Fetch skill details from Firestore
-                        String skillName = data['skillName'];
-                        String skillID = document.id;
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AddSkill(
-                              skillName: skillName,
-                              skillID: skillID,
-                            ),
-                          ),
-                        );
-                      },
-                      child: Icon(Icons.edit),
-                    )
-                  ],
-                ),
-              );
-            }).toList(),
+            children: activeItems.map((doc) => buildTile(doc, false)).toList() +
+                disabledItems.map((doc) => buildTile(doc, true)).toList(),
           );
         },
       ),

@@ -89,6 +89,7 @@ class addSkillState extends State<AddSkill> {
     try {
       await FirebaseFirestore.instance.collection('skills').add({
         'skillName': skillController.text.trim(),
+        'isDisabled': false,
       });
     } catch (e) {
       throw ('Error adding skill: $e');
