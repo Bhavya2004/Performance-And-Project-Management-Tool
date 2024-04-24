@@ -22,14 +22,14 @@ Widget textFormField(
         inputFormatters: [LengthLimitingTextInputFormatter(inputFormatNumber)],
         controller: controller,
         keyboardType: keyboardType,
-        cursorColor: AppColor.elephant,
+        cursorColor: AppColor.black,
         cursorHeight: 20,
         cursorWidth: 2,
         decoration: InputDecoration(
           labelText: labelText,
           labelStyle: TextStyle(
             fontWeight: FontWeight.w400,
-            color: AppColor.elephant,
+            color: AppColor.black,
           ),
           prefixIcon: prefixIcon,
           fillColor: AppColor.white,

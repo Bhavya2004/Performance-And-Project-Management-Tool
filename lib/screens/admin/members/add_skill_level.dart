@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/widgets.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/snackbar.dart';
 
@@ -110,117 +110,56 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
     }
   }
 
-  void _showSkillPicker() {
-    showCupertinoModalPopup<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          height: 220,
-          color: CupertinoColors.white,
-          child: Column(
-            children: [
-              Container(
-                color: CupertinoColors.lightBackgroundGray,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CupertinoButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(
-                          fontFamily: "SF-Pro",
-                        ),
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    ),
-                    CupertinoButton(
-                      onPressed: () {
-                        setState(() {
-                          _selectedSkill = _skills[_selectedSkillIndex];
-                        });
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        'Done',
-                        style: TextStyle(
-                          fontFamily: "SF-Pro",
-                        ),
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: CupertinoPicker.builder(
-                  itemExtent: 32.0,
-                  onSelectedItemChanged: (int index) {
-                    setState(() {
-                      _selectedSkillIndex = index;
-                    });
-                  },
-                  childCount: _skills.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return Center(
-                      child: Text(_skills[index]),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  int _selectedSkillIndex = 0;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Assign Skill and Level'),
       ),
-      body: Column(
-        children: [
-          GestureDetector(
-            onTap: _showSkillPicker,
-            child: Container(
-              padding: EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _selectedSkill ?? 'Select Skill',
-                    style: TextStyle(fontSize: 16.0),
-                  ),
-                  Icon(Icons.arrow_drop_down),
-                ],
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Container(
+              margin: EdgeInsets.all(10),
+              child: DropdownButtonFormField(
+                items: _skills.map((skill) {
+                  return DropdownMenuItem(
+                    value: skill,
+                    child: Text(skill),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedSkill = value as String?;
+                  });
+                },
+                value: _selectedSkill,
+                decoration: InputDecoration(
+                  labelText: 'Skill',
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 10),
-          ..._levels.map((level) {
-            return RadioListTile(
-              title: Text(level),
-              value: level,
-              groupValue: _selectedLevel,
-              onChanged: (value) {
-                setState(() {
-                  _selectedLevel = value as String?;
-                });
-              },
-            );
-          }).toList(),
-          button(
-            onPressed: assignSkillAndLevel,
-            buttonName: 'Assign Skill and Level',
-          ),
-        ],
+            ..._levels.map((level) {
+              return RadioListTile(
+                title: Text(level),
+                value: level,
+                groupValue: _selectedLevel,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedLevel = value as String?;
+                  });
+                },
+              );
+            }).toList(),
+            button(
+              onPressed: _selectedSkill != null && _selectedLevel != null
+                  ? assignSkillAndLevel
+                  : null,
+              buttonName: 'Assign Skill and Level',
+            ),
+          ],
+        ),
       ),
     );
   }
