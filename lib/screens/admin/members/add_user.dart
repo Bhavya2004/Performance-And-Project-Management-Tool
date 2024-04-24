@@ -157,6 +157,7 @@ class _AddUserState extends State<AddUser> {
           phoneNumber: phoneNumberController.text,
           email: emailController.text.toString(),
           role: "user",
+          isDisabled: false,
         );
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -234,7 +235,8 @@ class _AddUserState extends State<AddUser> {
       required String role,
       required String name,
       required String surname,
-      required String phoneNumber}) async {
+      required String phoneNumber,
+      required bool isDisabled}) async {
     FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
     var user = FirebaseAuth.instance.currentUser;
     CollectionReference ref = firebaseFirestore.collection('users');
@@ -243,7 +245,8 @@ class _AddUserState extends State<AddUser> {
       'role': role,
       'name': name,
       'surname': surname,
-      'phoneNumber': phoneNumber
+      'phoneNumber': phoneNumber,
+      'isDisabled': isDisabled,
     });
   }
 

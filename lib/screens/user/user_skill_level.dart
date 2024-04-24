@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/screens/admin/members/add_skill_level.dart';
 
-class SkillLevel extends StatefulWidget {
+class UserSkillLevel extends StatefulWidget {
   final String? UserID;
-  final String? UserName;
 
-  SkillLevel({Key? key, this.UserID, this.UserName}) : super(key: key);
+  UserSkillLevel({Key? key, this.UserID}) : super(key: key);
 
   @override
-  State<SkillLevel> createState() => _SkillLevelState();
+  State<UserSkillLevel> createState() => _SkillLevelState();
 }
 
-class _SkillLevelState extends State<SkillLevel> {
+class _SkillLevelState extends State<UserSkillLevel> {
   List<DocumentSnapshot> _userSkillsLevels = [];
 
   @override
@@ -53,20 +52,6 @@ class _SkillLevelState extends State<SkillLevel> {
             ),
             SizedBox(
               height: 4,
-            ),
-            Row(
-              children: [
-                Text(
-                  widget.UserName.toString(),
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(
-                  width: 5,
-                ),
-              ],
             ),
           ],
         ),

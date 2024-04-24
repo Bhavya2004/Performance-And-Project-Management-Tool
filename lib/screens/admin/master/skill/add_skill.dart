@@ -28,7 +28,7 @@ class addSkillState extends State<AddSkill> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Skill'),
+        title: widget.skillID == "" ? Text('Add Skill') : Text('Update Skill'),
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -48,7 +48,7 @@ class addSkillState extends State<AddSkill> {
                 labelText: 'Skill Name',
                 obscureText: false,
               ),
-              SizedBox(height: 20.0),
+              SizedBox(height: 10),
               button(
                 buttonName:
                     widget.skillName.isNotEmpty ? 'Update Skill' : 'Add Skill',

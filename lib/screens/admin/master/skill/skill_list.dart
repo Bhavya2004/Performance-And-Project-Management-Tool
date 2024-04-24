@@ -32,35 +32,43 @@ class SkillListPage extends StatelessWidget {
           ListTile buildTile(DocumentSnapshot document, bool isDisabled) {
             Map<String, dynamic> data = document.data() as Map<String, dynamic>;
             return ListTile(
-              tileColor: isDisabled ? Colors.grey : null,
+              tileColor: isDisabled ? Colors.grey[400] : null,
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(data['skillName']),
+                  GestureDetector(
+                    onTap: isDisabled
+                        ? null
+                        : () async {
+                            String skillName = data['skillName'];
+                            String skillID = document.id;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddSkill(
+                                  skillName: skillName,
+                                  skillID: skillID,
+                                ),
+                              ),
+                            );
+                          },
+                    child: Text(
+                      data['skillName'],
+                    ),
+                  ),
                   Row(
                     children: [
-                      GestureDetector(
-                        onTap: isDisabled
-                            ? null
-                            : () async {
-                                String skillName = data['skillName'];
-                                String skillID = document.id;
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => AddSkill(
-                                      skillName: skillName,
-                                      skillID: skillID,
-                                    ),
-                                  ),
-                                );
-                              },
-                        child: Icon(Icons.edit),
-                      ),
                       IconButton(
-                        icon: Icon(Icons.delete),
+                        icon: isDisabled
+                            ? Icon(Icons.visibility_off)
+                            : Icon(Icons.visibility),
                         onPressed: isDisabled
-                            ? null
+                            ? () async {
+                                await firebaseFirestore
+                                    .collection('skills')
+                                    .doc(document.id)
+                                    .update({'isDisabled': false});
+                              }
                             : () async {
                                 await firebaseFirestore
                                     .collection('skills')

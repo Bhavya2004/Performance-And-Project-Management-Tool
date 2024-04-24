@@ -17,6 +17,7 @@ import 'package:ppmt/screens/splash_screen.dart';
 import 'package:ppmt/screens/admin/members/user.dart';
 import 'package:ppmt/screens/user/user_dashboard.dart';
 import 'package:ppmt/screens/admin/members/users.dart';
+import 'package:ppmt/screens/user/user_skill_level.dart';
 
 Map<String, Widget Function(BuildContext)> route = {
   '/': (context) => Splash(),
@@ -47,7 +48,10 @@ Map<String, Widget Function(BuildContext)> route = {
         userId: "",
       ),
   '/skill_level': (context) => SkillLevel(
-    UserID: "",
-    UserName: "",
-  ),
+        UserID: "",
+        UserName: "",
+      ),
+  '/user_skill_level': (context) => UserSkillLevel(
+        UserID: "",
+      ),
 };

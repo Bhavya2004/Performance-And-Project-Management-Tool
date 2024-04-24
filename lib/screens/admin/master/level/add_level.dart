@@ -29,7 +29,7 @@ class _AddLevelState extends State<AddLevel> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text("Add Level"),
+        title: widget.levelID == "" ? Text("Add Level") : Text("Update Level"),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -50,11 +50,14 @@ class _AddLevelState extends State<AddLevel> {
                     keyboardType: TextInputType.name,
                     labelText: 'Level',
                   ),
+                  SizedBox(
+                    height: 10,
+                  ),
                   button(
                     buttonName: widget.levelName.isNotEmpty
                         ? "Update Level"
                         : "Add Level",
-                    onPressed: addLevel,
+                    onPressed: submit,
                   ),
                 ],
               ),
@@ -65,7 +68,7 @@ class _AddLevelState extends State<AddLevel> {
     );
   }
 
-  Future<void> addLevel() async {
+  Future<void> submit() async {
     if (_formSignInKey.currentState!.validate()) {
       try {
         if (widget.levelName.isNotEmpty) {

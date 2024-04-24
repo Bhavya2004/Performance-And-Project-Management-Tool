@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:ppmt/screens/admin/master/level/add_level.dart';
 
 // Step 2: Add a new IconButton in your ListTile for the trash button
@@ -38,37 +39,46 @@ class LevelListPage extends StatelessWidget {
             Map<String, dynamic> data = document.data() as Map<String, dynamic>;
             return ListTile(
               tileColor: isDisabled
-                  ? Colors.grey
+                  ? Colors.grey[400]
                   : null, // Set color to grey if disabled
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(data['levelName']),
+                  GestureDetector(
+                    onTap: isDisabled
+                        ? null
+                        : () async {
+                            // Disable button if disabled
+                            String levelName = data['levelName'];
+                            String levelID = data['levelID'];
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddLevel(
+                                  levelName: levelName,
+                                  levelID: levelID,
+                                ),
+                              ),
+                            );
+                          },
+                    child: Text(
+                      data['levelName'],
+                    ),
+                  ),
                   Row(
                     children: [
-                      GestureDetector(
-                        onTap: isDisabled
-                            ? null
-                            : () async {
-                                // Disable button if disabled
-                                String levelName = data['levelName'];
-                                String levelID = data['levelID'];
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => AddLevel(
-                                      levelName: levelName,
-                                      levelID: levelID,
-                                    ),
-                                  ),
-                                );
-                              },
-                        child: Icon(Icons.edit),
-                      ),
                       IconButton(
-                        icon: Icon(Icons.delete),
+                        icon: isDisabled
+                            ? Icon(Icons.visibility_off)
+                            : Icon(Icons.visibility),
                         onPressed: isDisabled
-                            ? null
+                            ? () async {
+                                // Enable button if disabled
+                                await firebaseFirestore
+                                    .collection('levels')
+                                    .doc(document.id)
+                                    .update({'isDisabled': false});
+                              }
                             : () async {
                                 // Disable button if disabled
                                 await firebaseFirestore
