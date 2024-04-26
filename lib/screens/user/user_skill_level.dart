@@ -13,6 +13,7 @@ class UserSkillLevel extends StatefulWidget {
 
 class _SkillLevelState extends State<UserSkillLevel> {
   List<DocumentSnapshot> _userSkillsLevels = [];
+  List<DocumentSnapshot> _disabledUserSkillsLevels = [];
 
   @override
   void initState() {
@@ -29,11 +30,55 @@ class _SkillLevelState extends State<UserSkillLevel> {
           .where('userId', isEqualTo: widget.UserID)
           .get();
       setState(() {
-        _userSkillsLevels = userSkillsLevelsSnapshot.docs;
+        _userSkillsLevels = userSkillsLevelsSnapshot.docs
+            .where((doc) => doc['isDisabled'] != true)
+            .toList();
+        _disabledUserSkillsLevels = userSkillsLevelsSnapshot.docs
+            .where((doc) => doc['isDisabled'] == true)
+            .toList();
       });
     } catch (e) {
       print(e.toString());
     }
+  }
+
+  ListTile buildTile(DocumentSnapshot document, bool isDisabled) {
+    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+    var skill = data['skillName'] as String?;
+    var level = data['levelName'] as String?;
+
+    return ListTile(
+      tileColor: isDisabled ? Colors.grey[400] : null,
+      title: Text(skill ?? 'Missing skill'),
+      subtitle: Text(level ?? 'Missing level'),
+      trailing: IconButton(
+        icon: isDisabled ? Icon(Icons.visibility_off) : Icon(Icons.delete),
+        onPressed: () async {
+          await FirebaseFirestore.instance
+              .collection('userSkillsLevels')
+              .doc(document.id)
+              .update({'isDisabled': !isDisabled});
+
+          fetchUserSkillsLevels();
+        },
+      ),
+      onTap: isDisabled
+          ? null
+          : () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AssignSkillLevel(
+                    userId: widget.UserID!,
+                    selectedSkill: skill,
+                    selectedLevel: level,
+                  ),
+                ),
+              ).then((value) {
+                fetchUserSkillsLevels();
+              });
+            },
+    );
   }
 
   @override
@@ -63,57 +108,17 @@ class _SkillLevelState extends State<UserSkillLevel> {
             ListView.builder(
               shrinkWrap: true,
               scrollDirection: Axis.vertical,
-              itemCount: _userSkillsLevels.length,
+              itemCount:
+                  _userSkillsLevels.length + _disabledUserSkillsLevels.length,
               itemBuilder: (context, index) {
-                if (_userSkillsLevels.isEmpty) {
-                  return ListTile(
-                    title: Text('No data available'),
-                  );
+                if (index < _userSkillsLevels.length) {
+                  return buildTile(_userSkillsLevels[index], false);
+                } else {
+                  return buildTile(
+                      _disabledUserSkillsLevels[
+                          index - _userSkillsLevels.length],
+                      true);
                 }
-
-                // Fetch the data for the current index
-                var data = _userSkillsLevels[index].data();
-
-                // Check if data is null or not a Map<String, dynamic>
-                if (data == null || data is! Map<String, dynamic>) {
-                  return ListTile(
-                    title: Text('Invalid data format at index $index'),
-                  );
-                }
-
-                // Access 'skill' and 'level' fields from data
-                var skill = data['skillName'] as String?;
-                var level = data['levelName'] as String?;
-
-                // Check if skill or level is null
-                if (skill == null || level == null) {
-                  return ListTile(
-                    title: Text('Missing skill or level at index $index'),
-                  );
-                }
-
-                // Display the ListTile with skill and level
-                return ListTile(
-                  title: Text(skill),
-                  subtitle: Text(level),
-                  onTap: () {
-                    // Open the update page with previous data
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AssignSkillLevel(
-                          userId: widget.UserID!,
-                          selectedSkill: skill,
-                          selectedLevel: level,
-                        ),
-                      ),
-                    ).then((value) {
-                      setState(() {
-                        fetchUserSkillsLevels();
-                      });
-                    });
-                  },
-                );
               },
             ),
           ],
@@ -121,7 +126,6 @@ class _SkillLevelState extends State<UserSkillLevel> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Navigating to AssignSkillLevel screen with userId argument
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -129,7 +133,6 @@ class _SkillLevelState extends State<UserSkillLevel> {
             ),
           ).then(
             (value) {
-              setState(() {});
               fetchUserSkillsLevels();
             },
           );
