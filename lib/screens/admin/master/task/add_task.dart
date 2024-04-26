@@ -47,9 +47,20 @@ class _AddTaskState extends State<AddTask> {
                 },
                 child: Text('Add Status'),
               ),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: taskStatus.length,
+                itemBuilder: (context, index) {
+                  String key = taskStatus.keys.elementAt(index);
+                  return ListTile(
+                    title: Text(key),
+                    subtitle: Text(taskStatus[key].toString()),
+                  );
+                },
+              ),
               button(
                 buttonName: "Add Task",
-                onPressed: submit(),
+                onPressed: submit,
               )
             ],
           ),
@@ -82,7 +93,7 @@ class _AddTaskState extends State<AddTask> {
   Future<void> addTask({required String taskName}) async {
     try {
       FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-      CollectionReference ref = firebaseFirestore.collection('taska');
+      CollectionReference ref = firebaseFirestore.collection('tasks');
 
       int lastTaskID = await getLastTaskID();
       int newTaskID = lastTaskID + 1;

@@ -167,6 +167,53 @@ class _MasterState extends State<Master> {
                   ),
                 ),
               ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pushNamed("/task_list");
+                  },
+                  child: Card(
+                    margin: EdgeInsets.all(10),
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream:
+                            firebaseFirestore.collection('task').snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return SizedBox(
+                              height: 60,
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      "Task",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      "${snapshot.data!.docs.length}",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                          return const CircularProgressIndicator();
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ],

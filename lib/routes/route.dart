@@ -5,6 +5,8 @@ import 'package:ppmt/screens/admin/master/complexity/complexity_list.dart';
 import 'package:ppmt/screens/admin/master/level/add_level.dart';
 import 'package:ppmt/screens/admin/master/master.dart';
 import 'package:ppmt/screens/admin/master/skill/add_skill.dart';
+import 'package:ppmt/screens/admin/master/task/add_task.dart';
+import 'package:ppmt/screens/admin/master/task/task_list.dart';
 import 'package:ppmt/screens/admin/members/add_skill_level.dart';
 import 'package:ppmt/screens/admin/members/add_user.dart';
 import 'package:ppmt/screens/admin/admin_dashboard.dart';
@@ -58,4 +60,6 @@ Map<String, Widget Function(BuildContext)> route = {
       ),
   "/add_complexity": (context) => const AddComplexity(),
   '/complexity_list': (context) => ComplexityListPage(),
+  "/add_task": (context) => const AddTask(),
+  '/task_list': (context) => const TaskList(),
 };
