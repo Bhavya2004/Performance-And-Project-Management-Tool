@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ppmt/screens/admin/members/add_skill_level.dart';
 
 class SkillLevel extends StatefulWidget {
   final String? UserID;
@@ -111,46 +110,10 @@ class _SkillLevelState extends State<SkillLevel> {
                 return ListTile(
                   title: Text(skill),
                   subtitle: Text(level),
-                  onTap: () {
-                    // Open the update page with previous data
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AssignSkillLevel(
-                          userId: widget.UserID!,
-                          selectedSkill: skill,
-                          selectedLevel: level,
-                        ),
-                      ),
-                    ).then((value) {
-                      setState(() {
-                        fetchUserSkillsLevels();
-                      });
-                    });
-                  },
                 );
               },
             ),
           ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Navigating to AssignSkillLevel screen with userId argument
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AssignSkillLevel(userId: widget.UserID!),
-            ),
-          ).then(
-            (value) {
-              setState(() {});
-              fetchUserSkillsLevels();
-            },
-          );
-        },
-        label: Text(
-          "Add Skill/Level",
         ),
       ),
     );
