@@ -95,35 +95,55 @@ class _AdminDashboardState extends State<AdminDashboard> {
               leading: Icon(CupertinoIcons.person),
               title: Text('My Profile'),
               onTap: () {
-                Navigator.of(context).pushNamed('/profile');
+                Navigator.of(context).pushNamed('/profile').then(
+                  (value) async {
+                    Navigator.pop(context);
+                  },
+                );
               },
             ),
             ListTile(
               leading: Icon(CupertinoIcons.bell_fill),
               title: Text('Message'),
               onTap: () {
-                Navigator.of(context).pushNamed('/message');
+                Navigator.of(context).pushNamed('/message').then(
+                  (value) async {
+                    Navigator.pop(context);
+                  },
+                );
               },
             ),
             ListTile(
               leading: Icon(CupertinoIcons.hexagon_fill),
               title: const Text('Master'),
               onTap: () {
-                Navigator.of(context).pushNamed('/master');
+                Navigator.of(context).pushNamed('/master').then(
+                  (value) async {
+                    Navigator.pop(context);
+                  },
+                );
               },
             ),
             ListTile(
               leading: const Icon(CupertinoIcons.projective),
               title: const Text('Projects'),
               onTap: () {
-                Navigator.of(context).pushNamed('/projects');
+                Navigator.of(context).pushNamed('/projects').then(
+                  (value) async {
+                    Navigator.pop(context);
+                  },
+                );
               },
             ),
             ListTile(
               leading: const Icon(CupertinoIcons.person_2_fill),
               title: const Text('Members'),
               onTap: () {
-                Navigator.of(context).pushNamed('/user_list');
+                Navigator.of(context).pushNamed('/user_list').then(
+                  (value) async {
+                    Navigator.pop(context);
+                  },
+                );
               },
             ),
             ListTile(

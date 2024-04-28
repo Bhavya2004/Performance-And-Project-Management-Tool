@@ -178,7 +178,7 @@ class _MasterState extends State<Master> {
                       padding: EdgeInsets.all(20),
                       child: StreamBuilder<QuerySnapshot>(
                         stream:
-                            firebaseFirestore.collection('task').snapshots(),
+                            firebaseFirestore.collection('tasks').snapshots(),
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
                             return SizedBox(

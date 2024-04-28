@@ -1,5 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:ppmt/screens/admin/master/subtask/subtask_list.dart';
+import 'package:ppmt/screens/admin/master/task/add_task.dart';
 
 class TaskList extends StatefulWidget {
   const TaskList({Key? key}) : super(key: key);
@@ -30,9 +33,27 @@ class _TaskListState extends State<TaskList> {
               itemCount: tasks.length,
               itemBuilder: (context, index) {
                 final task = tasks[index];
+                final Map<String, dynamic> taskStatus =
+                    Map<String, dynamic>.from(task['taskStatus']);
+                final List<String> trueStatuses = taskStatus.entries
+                    .where((entry) => entry.value == true)
+                    .map((entry) => entry.key)
+                    .toList();
                 return ListTile(
                   title: Text(task['taskName']),
-                  subtitle: Text(task['taskStatus'].toString()),
+                  subtitle: Text(
+                      trueStatuses.join(", ")), // Display only true statuses
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SubTaskList(taskId: task.id),
+                      ),
+                    );
+                  },
+                  onLongPress: () {
+                    showActivitySheet(context, task);
+                  },
                 );
               },
             );
@@ -43,8 +64,55 @@ class _TaskListState extends State<TaskList> {
         label: Text("Add Task"),
         icon: Icon(Icons.add),
         onPressed: () {
-          Navigator.of(context).pushNamed('/add_task');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddTask(),
+            ),
+          );
         },
+      ),
+    );
+  }
+
+  void showActivitySheet(BuildContext context, DocumentSnapshot task) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        actions: <CupertinoActionSheetAction>[
+          CupertinoActionSheetAction(
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AddTask(
+                    taskId: task.id, // Pass task id to identify the task
+                    taskName: task['taskName'],
+                    taskStatus: task['taskStatus'],
+                    isEditMode: true, // Indicates that it's an edit mode
+                  ),
+                ),
+              ).then(
+                (value) {
+                  if (value == true) {
+                    setState(() {});
+                  }
+                },
+              ).then(
+                (value) {
+                  Navigator.pop(context);
+                },
+              );
+            },
+            child: Text(
+              "Edit",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: CupertinoColors.activeGreen,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

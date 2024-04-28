@@ -4,25 +4,59 @@ import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/textfield.dart';
 
 class AddTask extends StatefulWidget {
-  const AddTask({super.key});
+  final String? taskId; // Task ID for identifying the task in edit mode
+  final String? taskName; // Task name for pre-filling in edit mode
+  final Map<String, dynamic>?
+      taskStatus; // Task status for pre-filling in edit mode
+  final bool isEditMode; // Indicates if it's edit mode or not
+
+  const AddTask({
+    this.taskId,
+    this.taskName,
+    this.taskStatus,
+    this.isEditMode = false, // Default to false
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<AddTask> createState() => _AddTaskState();
 }
 
 class _AddTaskState extends State<AddTask> {
-  TextEditingController taskController = new TextEditingController();
+  late TextEditingController taskController;
   final _formKey = GlobalKey<FormState>();
+  String selectedStatus = "To Do";
   Map<String, dynamic> taskStatus = {
     "To Do": true,
     'Done': false,
   };
 
   @override
+  void initState() {
+    super.initState();
+    // Initialize controller with taskName if in edit mode, otherwise create a new one
+    taskController = TextEditingController(text: widget.taskName ?? '');
+    // Initialize selectedStatus with task status if in edit mode, otherwise keep default
+    if (widget.isEditMode && widget.taskStatus != null) {
+      // Retrieve all the custom statuses for the task
+      taskStatus = Map<String, dynamic>.from(widget.taskStatus!);
+      // Find the selected status (true) and set it as the selectedStatus
+      for (var entry in taskStatus.entries) {
+        if (entry.value == true) {
+          selectedStatus = entry.key;
+          break;
+        }
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Add Task"),
+        title: Text(widget.isEditMode
+            ? "Edit Task"
+            : "Add Task"), // Change title based on mode
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -47,19 +81,24 @@ class _AddTaskState extends State<AddTask> {
                 },
                 child: Text('Add Status'),
               ),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: taskStatus.length,
-                itemBuilder: (context, index) {
-                  String key = taskStatus.keys.elementAt(index);
-                  return ListTile(
-                    title: Text(key),
-                    subtitle: Text(taskStatus[key].toString()),
-                  );
+              DropdownButtonFormField<String>(
+                value: selectedStatus,
+                onChanged: (newValue) {
+                  setState(() {
+                    selectedStatus = newValue!;
+                  });
                 },
+                items: taskStatus.keys.map((String status) {
+                  return DropdownMenuItem<String>(
+                    value: status,
+                    child: Text(status),
+                  );
+                }).toList(),
               ),
               button(
-                buttonName: "Add Task",
+                buttonName: widget.isEditMode
+                    ? "Update Task"
+                    : "Add Task", // Change button label based on mode
                 onPressed: submit,
               )
             ],
@@ -108,15 +147,46 @@ class _AddTaskState extends State<AddTask> {
     }
   }
 
+  Future<void> updateTask(
+      {required String taskId, required String taskName}) async {
+    try {
+      FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+      DocumentReference ref = firebaseFirestore.collection('tasks').doc(taskId);
+
+      // Create a new map to store the updated task status
+      Map<String, dynamic> updatedTaskStatus = {};
+      taskStatus.forEach((key, value) {
+        // Set the selected status to true, rest to false
+        updatedTaskStatus[key] = (key == selectedStatus);
+      });
+
+      await ref.update({'taskName': taskName, "taskStatus": updatedTaskStatus});
+    } catch (e) {
+      throw ('Error updating task: $e');
+    }
+  }
+
   Future<void> submit() async {
     if (_formKey.currentState!.validate()) {
       try {
-        await addTask(taskName: taskController.text.toString());
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Task Added Successfully'),
-          ),
-        );
+        if (widget.isEditMode) {
+          // If in edit mode, update the existing task
+          await updateTask(
+              taskId: widget.taskId!, taskName: taskController.text.toString());
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Task Updated Successfully'),
+            ),
+          );
+        } else {
+          // If not in edit mode, add a new task
+          await addTask(taskName: taskController.text.toString());
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Task Added Successfully'),
+            ),
+          );
+        }
 
         Navigator.of(context).pop();
       } catch (e) {
