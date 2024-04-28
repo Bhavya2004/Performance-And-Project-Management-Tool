@@ -96,6 +96,7 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
             'userId': widget.userId,
             'skillName': _selectedSkill,
             'levelName': _selectedLevel,
+            'isDisabled': false,
           });
         }
 
