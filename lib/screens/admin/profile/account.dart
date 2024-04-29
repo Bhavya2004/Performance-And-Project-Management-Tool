@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ppmt/constants/color.dart';
 
 class Account extends StatefulWidget {
   const Account({super.key});
@@ -12,12 +13,26 @@ class _AccountState extends State<Account> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('My Profile'),
+        iconTheme: IconThemeData(
+          color: AppColor.white,
+        ),
+        backgroundColor: AppColor.sanMarino,
+        title: Text(
+          'My Profile',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColor.white,
+          ),
+        ),
       ),
       body: Center(
         child: Text(
           "Account Page",
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+          ),
         ),
       ),
     );

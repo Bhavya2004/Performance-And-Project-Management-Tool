@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/textfield.dart';
+import 'package:ppmt/constants/color.dart';
 
 class AddLevel extends StatefulWidget {
   final String levelName;
@@ -29,41 +30,57 @@ class _AddLevelState extends State<AddLevel> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: widget.levelID == "" ? Text("Add Level") : Text("Update Level"),
+        iconTheme: IconThemeData(
+          color: AppColor.white,
+        ),
+        backgroundColor: AppColor.sanMarino,
+        title: Text(
+          widget.levelID.isEmpty ? "Add Level" : "Update Level",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColor.white,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Form(
-              key: _formSignInKey,
-              child: Column(
-                children: [
-                  textFormField(
-                    controller: levelController,
-                    obscureText: false,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "Level is required";
-                      }
-                      return null;
-                    },
-                    keyboardType: TextInputType.name,
-                    labelText: 'Level',
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  button(
-                    buttonName: widget.levelName.isNotEmpty
-                        ? "Update Level"
-                        : "Add Level",
-                    onPressed: submit,
-                  ),
-                ],
-              ),
-            ),
-          ],
+        child: Form(
+          key: _formSignInKey,
+          child: Column(
+            children: [
+              buildLevelTextField(),
+              SizedBox(height: 10),
+              buildSubmitButton(),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget buildLevelTextField() {
+    return textFormField(
+      controller: levelController,
+      obscureText: false,
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return "Level is required";
+        }
+        return null;
+      },
+      keyboardType: TextInputType.name,
+      labelText: 'Level',
+    );
+  }
+
+  Widget buildSubmitButton() {
+    return Padding(
+      padding: const EdgeInsets.all(15),
+      child: button(
+        buttonName: widget.levelName.isNotEmpty ? "Update Level" : "Add Level",
+        onPressed: submit,
+        backgroundColor: AppColor.black,
+        textColor: AppColor.white,
       ),
     );
   }
@@ -72,22 +89,17 @@ class _AddLevelState extends State<AddLevel> {
     if (_formSignInKey.currentState!.validate()) {
       try {
         if (widget.levelName.isNotEmpty) {
-          // Update existing level
           await updateLevelDetails();
         } else {
-          // Add new level
-          await addLevelDetails(level: levelController.text.toString());
-          // Show success message
+          await addLevelDetails(level: levelController.text);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Level Added Successfully'),
             ),
           );
         }
-        // Navigate back to previous screen
         Navigator.of(context).pop();
       } catch (e) {
-        // Handle any errors that occur during level addition or update
         print('Error: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -102,16 +114,12 @@ class _AddLevelState extends State<AddLevel> {
     try {
       FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
       CollectionReference ref = firebaseFirestore.collection('levels');
-
-      // Get the last assigned levelID from Firestore
       int lastLevelID = await getLastLevelID();
       int newLevelID = lastLevelID + 1;
-
-      // Add the new level with the incremented levelID and isDisabled set to false
       await ref.add({
         'levelID': newLevelID.toString(),
         'levelName': level,
-        'isDisabled': false // Set isDisabled to false by default
+        'isDisabled': false,
       });
     } catch (e) {
       throw ('Error adding level: $e');
@@ -126,14 +134,12 @@ class _AddLevelState extends State<AddLevel> {
           .orderBy('levelID', descending: true)
           .limit(1)
           .get();
-
       if (snapshot.docs.isNotEmpty) {
         String? levelIDString = snapshot.docs.first['levelID'] as String?;
         if (levelIDString != null && int.tryParse(levelIDString) != null) {
           return int.parse(levelIDString);
         }
       }
-      // If no valid levelID is found, return 0
       return 0;
     } catch (e) {
       throw ('Error getting last level ID: $e');
@@ -146,30 +152,19 @@ class _AddLevelState extends State<AddLevel> {
       CollectionReference ref = firebaseFirestore.collection('levels');
       QuerySnapshot<Object?> querySnapshot =
           await ref.where('levelID', isEqualTo: widget.levelID).get();
-
       if (querySnapshot.docs.isNotEmpty) {
         DocumentSnapshot<Object?> levelSnapshot = querySnapshot.docs.first;
-
         Map<String, dynamic>? levelData =
             levelSnapshot.data() as Map<String, dynamic>?;
-
         if (levelData != null) {
-          // Update levelName field with the new value
           levelData['levelName'] = levelController.text;
-          // Update isDisabled field with the new value
-          levelData['isDisabled'] = false; // or true, depending on your needs
-
-          // Update the document with the modified data
+          levelData['isDisabled'] = false;
           await levelSnapshot.reference.update(levelData);
-
           print('Level updated successfully');
-          // Show success message or perform any additional actions
         } else {
-          // Document data is null or empty
           throw ('Document data is null or empty');
         }
       } else {
-        // No document found with the specified levelID
         throw ('Level with ID ${widget.levelID} not found.');
       }
     } catch (e) {

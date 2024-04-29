@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/members/add_skill_level.dart';
 
 class SkillLevel extends StatefulWidget {
-  final String? UserID;
-  final String? UserName;
+  final String? userID;
+  final String? userName;
 
-  SkillLevel({Key? key, this.UserID, this.UserName}) : super(key: key);
+  SkillLevel({Key? key, this.userID, this.userName}) : super(key: key);
 
   @override
   State<SkillLevel> createState() => _SkillLevelState();
 }
 
 class _SkillLevelState extends State<SkillLevel> {
-  List<DocumentSnapshot> _userSkillsLevels = [];
+  late List<DocumentSnapshot> _userSkillsLevels;
 
   @override
   void initState() {
     super.initState();
-    if (widget.UserID != null && widget.UserID!.isNotEmpty) {
+    _userSkillsLevels = [];
+    if (widget.userID != null && widget.userID!.isNotEmpty) {
       fetchUserSkillsLevels();
     }
   }
@@ -27,7 +29,7 @@ class _SkillLevelState extends State<SkillLevel> {
     try {
       QuerySnapshot userSkillsLevelsSnapshot = await FirebaseFirestore.instance
           .collection('userSkillsLevels')
-          .where('userId', isEqualTo: widget.UserID)
+          .where('userId', isEqualTo: widget.userID)
           .where('isDisabled', isEqualTo: false)
           .get();
       setState(() {
@@ -42,6 +44,10 @@ class _SkillLevelState extends State<SkillLevel> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        iconTheme: IconThemeData(
+          color: AppColor.white,
+        ),
+        backgroundColor: AppColor.sanMarino,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -49,25 +55,20 @@ class _SkillLevelState extends State<SkillLevel> {
               "Skill - Level",
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.bold,
+                color: AppColor.white,
               ),
             ),
             SizedBox(
               height: 4,
             ),
-            Row(
-              children: [
-                Text(
-                  widget.UserName.toString(),
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(
-                  width: 5,
-                ),
-              ],
+            Text(
+              widget.userName ?? "",
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: AppColor.white,
+              ),
             ),
           ],
         ),
@@ -75,83 +76,28 @@ class _SkillLevelState extends State<SkillLevel> {
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: Column(
-          children: [
-            ListView.builder(
-              shrinkWrap: true,
-              scrollDirection: Axis.vertical,
-              itemCount: _userSkillsLevels.length,
-              itemBuilder: (context, index) {
-                if (_userSkillsLevels.isEmpty) {
-                  return ListTile(
-                    title: Text('No data available'),
-                  );
-                }
-
-                // Fetch the data for the current index
-                var data = _userSkillsLevels[index].data();
-
-                // Check if data is null or not a Map<String, dynamic>
-                if (data == null || data is! Map<String, dynamic>) {
-                  return ListTile(
-                    title: Text('Invalid data format at index $index'),
-                  );
-                }
-
-                // Access 'skill' and 'level' fields from data
-                var skill = data['skillName'] as String?;
-                var level = data['levelName'] as String?;
-
-                // Check if skill or level is null
-                if (skill == null || level == null) {
-                  return ListTile(
-                    title: Text('Missing skill or level at index $index'),
-                  );
-                }
-
-                // Display the ListTile with skill and level
-                return ListTile(
-                  title: Text(skill),
-                  subtitle: Text(level),
-                  onTap: () {
-                    // Open the update page with previous data
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AssignSkillLevel(
-                          userId: widget.UserID!,
-                          selectedSkill: skill,
-                          selectedLevel: level,
-                        ),
-                      ),
-                    ).then((value) {
-                      setState(() {
-                        fetchUserSkillsLevels();
-                      });
-                    });
-                  },
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Navigating to AssignSkillLevel screen with userId argument
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AssignSkillLevel(userId: widget.UserID!),
-            ),
-          ).then(
-            (value) {
-              setState(() {});
-              fetchUserSkillsLevels();
-            },
-          );
-        },
-        label: Text(
-          "Add Skill/Level",
+          children: _userSkillsLevels.map((doc) {
+            var data = doc.data();
+            if (data == null || !(data is Map<String, dynamic>)) {
+              return ListTile(
+                title: Text('Invalid data format'),
+              );
+            }
+            var skill = data['skillName'] as String?;
+            var level = data['levelName'] as String?;
+            if (skill == null || level == null) {
+              return ListTile(
+                title: Text('Missing skill or level'),
+              );
+            }
+            return Card(
+              margin: EdgeInsets.all(10),
+              child: ListTile(
+                title: Text(skill),
+                subtitle: Text(level),
+              ),
+            );
+          }).toList(),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/master/subtask/add_subtask.dart';
 
 class SubTaskList extends StatefulWidget {
@@ -16,20 +17,35 @@ class _SubTaskListState extends State<SubTaskList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Sub Task"),
+        iconTheme: IconThemeData(
+          color: AppColor.white,
+        ),
+        backgroundColor: AppColor.sanMarino,
+        title: Text(
+          "Sub Task",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColor.white,
+          ),
+        ),
       ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance
             .collection('subtasks')
-            .where('taskId',
-                isEqualTo: widget.taskId) // Filter subtasks by taskId
+            .where(
+              'taskId',
+              isEqualTo: widget.taskId,
+            )
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const CircularProgressIndicator();
           } else if (snapshot.hasError) {
             return Center(
-              child: Text('Error: ${snapshot.error}'),
+              child: Text(
+                'Error: ${snapshot.error}',
+              ),
             );
           } else {
             final subTasks = snapshot.data!.docs;
@@ -37,21 +53,24 @@ class _SubTaskListState extends State<SubTaskList> {
               itemCount: subTasks.length,
               itemBuilder: (context, index) {
                 final subTask = subTasks[index];
-                return ListTile(
-                  title: Text(subTask['subTaskName']),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AddSubTask(
-                          taskId: widget.taskId,
-                          subTaskID: subTask.id,
-                          subTaskName: subTask['subTaskName'],
-                          isEditMode: true,
+                return Card(
+                  margin: EdgeInsets.all(10),
+                  child: ListTile(
+                    title: Text(subTask['subTaskName']),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddSubTask(
+                            taskId: widget.taskId,
+                            subTaskID: subTask.id,
+                            subTaskName: subTask['subTaskName'],
+                            isEditMode: true,
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 );
               },
             );
@@ -59,8 +78,16 @@ class _SubTaskListState extends State<SubTaskList> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        label: Text("Add Sub Task"),
-        icon: Icon(Icons.add),
+        label: Text(
+          "Add Sub Task",
+          style: TextStyle(
+            color: AppColor.black,
+          ),
+        ),
+        icon: Icon(
+          Icons.add,
+          color: AppColor.black,
+        ),
         onPressed: () {
           Navigator.push(
             context,

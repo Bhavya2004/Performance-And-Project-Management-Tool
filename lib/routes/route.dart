@@ -18,7 +18,6 @@ import 'package:ppmt/screens/admin/profile/account.dart';
 import 'package:ppmt/screens/admin/projects/projects.dart';
 import 'package:ppmt/screens/signin_screen.dart';
 import 'package:ppmt/screens/splash_screen.dart';
-import 'package:ppmt/screens/admin/members/user.dart';
 import 'package:ppmt/screens/user/user_dashboard.dart';
 import 'package:ppmt/screens/admin/members/users.dart';
 import 'package:ppmt/screens/user/user_skill_level.dart';
@@ -40,7 +39,6 @@ Map<String, Widget Function(BuildContext)> route = {
   "/master": (context) => const Master(),
   "/projects": (context) => const Projects(),
   "/user_list": (context) => const Users(),
-  "/user": (context) => const User(),
   "/level_list": (context) => LevelListPage(),
   "/add_level": (context) => const AddLevel(
         levelID: "",
@@ -52,8 +50,8 @@ Map<String, Widget Function(BuildContext)> route = {
         userId: "",
       ),
   '/skill_level': (context) => SkillLevel(
-        UserID: "",
-        UserName: "",
+        userID: "",
+        userName: "",
       ),
   '/user_skill_level': (context) => UserSkillLevel(
         UserID: "",

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/textfield.dart';
+import 'package:ppmt/constants/color.dart';
 
 class AddSkill extends StatefulWidget {
   final String skillName;
@@ -11,12 +12,12 @@ class AddSkill extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<AddSkill> createState() => addSkillState();
+  State<AddSkill> createState() => AddSkillState();
 }
 
-class addSkillState extends State<AddSkill> {
+class AddSkillState extends State<AddSkill> {
   final _formKey = GlobalKey<FormState>();
-  TextEditingController skillController = TextEditingController();
+  final TextEditingController skillController = TextEditingController();
 
   @override
   void initState() {
@@ -28,7 +29,18 @@ class addSkillState extends State<AddSkill> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: widget.skillID == "" ? Text('Add Skill') : Text('Update Skill'),
+        iconTheme: IconThemeData(
+          color: AppColor.white,
+        ),
+        backgroundColor: AppColor.sanMarino,
+        title: Text(
+          widget.skillID.isEmpty ? 'Add Skill' : 'Update Skill',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColor.white,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -49,10 +61,16 @@ class addSkillState extends State<AddSkill> {
                 obscureText: false,
               ),
               SizedBox(height: 10),
-              button(
-                buttonName:
-                    widget.skillName.isNotEmpty ? 'Update Skill' : 'Add Skill',
-                onPressed: submit,
+              Padding(
+                padding: const EdgeInsets.all(15),
+                child: button(
+                  buttonName: widget.skillName.isNotEmpty
+                      ? 'Update Skill'
+                      : 'Add Skill',
+                  onPressed: submit,
+                  backgroundColor: AppColor.black,
+                  textColor: AppColor.white,
+                ),
               ),
             ],
           ),
@@ -65,21 +83,23 @@ class addSkillState extends State<AddSkill> {
     if (_formKey.currentState!.validate()) {
       try {
         if (widget.skillName.isNotEmpty) {
-          // Update existing skill
           await updateSkill();
         } else {
-          // Add new skill
           await addSkill();
         }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  'Skill ${widget.skillName.isNotEmpty ? 'updated' : 'added'} successfully')),
+            content: Text(
+              'Skill ${widget.skillName.isNotEmpty ? 'updated' : 'added'} successfully',
+            ),
+          ),
         );
         Navigator.of(context).pop();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(
+            content: Text('Error: $e'),
+          ),
         );
       }
     }

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/master/subtask/subtask_list.dart';
 import 'package:ppmt/screens/admin/master/task/add_task.dart';
 
@@ -16,7 +17,18 @@ class _TaskListState extends State<TaskList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Task"),
+        iconTheme: IconThemeData(
+          color: AppColor.white,
+        ),
+        backgroundColor: AppColor.sanMarino,
+        title: Text(
+          "Task",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColor.white,
+          ),
+        ),
       ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance.collection('tasks').snapshots(),
@@ -25,7 +37,9 @@ class _TaskListState extends State<TaskList> {
             return const CircularProgressIndicator();
           } else if (snapshot.hasError) {
             return Center(
-              child: Text('Error: ${snapshot.error}'),
+              child: Text(
+                'Error: ${snapshot.error}',
+              ),
             );
           } else {
             final tasks = snapshot.data!.docs;
@@ -34,26 +48,49 @@ class _TaskListState extends State<TaskList> {
               itemBuilder: (context, index) {
                 final task = tasks[index];
                 final Map<String, dynamic> taskStatus =
-                    Map<String, dynamic>.from(task['taskStatus']);
+                    Map<String, dynamic>.from(
+                  task['taskStatus'],
+                );
                 final List<String> trueStatuses = taskStatus.entries
                     .where((entry) => entry.value == true)
                     .map((entry) => entry.key)
                     .toList();
-                return ListTile(
-                  title: Text(task['taskName']),
-                  subtitle: Text(
-                      trueStatuses.join(", ")), // Display only true statuses
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SubTaskList(taskId: task.id),
+
+                return Card(
+                  margin: EdgeInsets.all(
+                    10,
+                  ),
+                  child: ListTile(
+                    title: Text(
+                      task['taskName'],
+                      style: TextStyle(
+                        color: AppColor.black,
+                        fontWeight: FontWeight.bold,
                       ),
-                    );
-                  },
-                  onLongPress: () {
-                    showActivitySheet(context, task);
-                  },
+                    ),
+                    subtitle: Text(
+                      trueStatuses.join(
+                        ", ",
+                      ),
+                      style: TextStyle(
+                        color: AppColor.black,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SubTaskList(
+                            taskId: task.id,
+                          ),
+                        ),
+                      );
+                    },
+                    onLongPress: () {
+                      showActivitySheet(context, task);
+                    },
+                  ),
                 );
               },
             );
@@ -61,15 +98,18 @@ class _TaskListState extends State<TaskList> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        label: Text("Add Task"),
-        icon: Icon(Icons.add),
+        label: Text(
+          "Add Task",
+          style: TextStyle(
+            color: AppColor.black,
+          ),
+        ),
+        icon: Icon(
+          Icons.add,
+          color: AppColor.black,
+        ),
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddTask(),
-            ),
-          );
+          Navigator.of(context).pushNamed('/add_task');
         },
       ),
     );
@@ -86,10 +126,10 @@ class _TaskListState extends State<TaskList> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => AddTask(
-                    taskId: task.id, // Pass task id to identify the task
+                    taskId: task.id,
                     taskName: task['taskName'],
                     taskStatus: task['taskStatus'],
-                    isEditMode: true, // Indicates that it's an edit mode
+                    isEditMode: true,
                   ),
                 ),
               ).then(

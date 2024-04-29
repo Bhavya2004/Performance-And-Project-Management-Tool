@@ -11,12 +11,14 @@ Widget textFormField(
     required bool obscureText,
     dynamic inputFormatNumber,
     bool enabled = true}) {
-  // Add enabled parameter with default value true
   return Padding(
-    padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
     child: Focus(
       child: TextFormField(
-        enabled: enabled, // Pass the enabled parameter value
+        style: kBodyText.copyWith(
+          color: Colors.black,
+        ),
+        enabled: enabled,
         obscureText: obscureText,
         validator: validator,
         inputFormatters: [LengthLimitingTextInputFormatter(inputFormatNumber)],
@@ -27,12 +29,7 @@ Widget textFormField(
         cursorWidth: 2,
         decoration: InputDecoration(
           labelText: labelText,
-          labelStyle: TextStyle(
-            fontWeight: FontWeight.w400,
-            color: AppColor.black,
-          ),
-          prefixIcon: prefixIcon,
-          fillColor: AppColor.white,
+          labelStyle: kBodyText,
         ),
       ),
     ),

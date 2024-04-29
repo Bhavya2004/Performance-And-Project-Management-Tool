@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/textfield.dart';
+import 'package:ppmt/constants/color.dart';
 
 class AddTask extends StatefulWidget {
   final String? taskId; // Task ID for identifying the task in edit mode
@@ -54,9 +55,18 @@ class _AddTaskState extends State<AddTask> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditMode
-            ? "Edit Task"
-            : "Add Task"), // Change title based on mode
+        iconTheme: IconThemeData(
+          color: AppColor.white,
+        ),
+        backgroundColor: AppColor.sanMarino,
+        title: Text(
+          widget.isEditMode ? "Update Task" : "Add Task",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColor.white,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -79,27 +89,35 @@ class _AddTaskState extends State<AddTask> {
                 onPressed: () {
                   _showStatusInputDialog();
                 },
-                child: Text('Add Status'),
+                child: Text(
+                  'Add Status',
+                ),
               ),
-              DropdownButtonFormField<String>(
-                value: selectedStatus,
-                onChanged: (newValue) {
-                  setState(() {
-                    selectedStatus = newValue!;
-                  });
-                },
-                items: taskStatus.keys.map((String status) {
-                  return DropdownMenuItem<String>(
-                    value: status,
-                    child: Text(status),
-                  );
-                }).toList(),
+              Padding(
+                padding: const EdgeInsets.all(15),
+                child: DropdownButtonFormField<String>(
+                  value: selectedStatus,
+                  onChanged: (newValue) {
+                    setState(() {
+                      selectedStatus = newValue!;
+                    });
+                  },
+                  items: taskStatus.keys.map((String status) {
+                    return DropdownMenuItem<String>(
+                      value: status,
+                      child: Text(status),
+                    );
+                  }).toList(),
+                ),
               ),
-              button(
-                buttonName: widget.isEditMode
-                    ? "Update Task"
-                    : "Add Task", // Change button label based on mode
-                onPressed: submit,
+              Padding(
+                padding: const EdgeInsets.all(15),
+                child: button(
+                  buttonName: widget.isEditMode ? "Update Task" : "Add Task",
+                  backgroundColor: AppColor.black,
+                  textColor: AppColor.white,
+                  onPressed: submit,
+                ),
               )
             ],
           ),

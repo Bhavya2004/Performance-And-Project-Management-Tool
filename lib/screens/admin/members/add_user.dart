@@ -1,9 +1,11 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/textfield.dart';
-import 'dart:math';
+import 'package:ppmt/constants/color.dart';
 
 class AddUser extends StatefulWidget {
   final String? name;
@@ -58,9 +60,19 @@ class _AddUserState extends State<AddUser> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: widget.isProfileEditing ? Text("Update User") : Text("Add User"),
+        iconTheme: IconThemeData(
+          color: AppColor.white,
+        ),
+        backgroundColor: AppColor.sanMarino,
+        title: Text(
+          widget.isProfileEditing ? "Update User" : "Add User",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColor.white,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -108,8 +120,7 @@ class _AddUserState extends State<AddUser> {
                   ),
                   textFormField(
                     controller: emailController,
-                    enabled: !widget
-                        .isProfileEditing, // Disable editing if in edit mode
+                    enabled: !widget.isProfileEditing,
                     obscureText: false,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -123,10 +134,15 @@ class _AddUserState extends State<AddUser> {
                   SizedBox(
                     height: 20,
                   ),
-                  button(
-                    buttonName:
-                        widget.isProfileEditing ? "Update User" : "Add User",
-                    onPressed: widget.isProfileEditing ? editUser : addUser,
+                  Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: button(
+                      buttonName:
+                          widget.isProfileEditing ? "Update User" : "Add User",
+                      backgroundColor: AppColor.black,
+                      textColor: AppColor.white,
+                      onPressed: widget.isProfileEditing ? editUser : addUser,
+                    ),
                   ),
                 ],
               ),
@@ -140,17 +156,16 @@ class _AddUserState extends State<AddUser> {
   Future<void> addUser() async {
     if (_formSignInKey.currentState!.validate()) {
       try {
-        // Create new user account in Firebase Authentication
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: emailController.text,
           password: generateRandomPassword(),
         );
-        // Send temporary password to user's email
+
         await sendTemporaryPassword(
           emailController.text,
           generateRandomPassword(),
         );
-        // Post user details to Firestore
+
         await postDetailsToFirestore(
           name: nameController.text.toString(),
           surname: surNameController.text.toString(),
@@ -159,7 +174,7 @@ class _AddUserState extends State<AddUser> {
           role: "user",
           isDisabled: false,
         );
-        // Show success message
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -167,7 +182,7 @@ class _AddUserState extends State<AddUser> {
             ),
           ),
         );
-        // Navigate back to Dashboard after registration
+
         Navigator.of(context).pop();
       } on FirebaseAuthException catch (e) {
         if (e.code == 'email-already-in-use') {
@@ -191,9 +206,7 @@ class _AddUserState extends State<AddUser> {
   Future<void> editUser() async {
     if (_formSignInKey.currentState!.validate()) {
       try {
-        // Update existing user
         await updateDetails();
-        // Navigate back to Dashboard after update
         Navigator.of(context).pop();
       } catch (e) {
         print(e);
@@ -226,7 +239,6 @@ class _AddUserState extends State<AddUser> {
       print('Temporary password sent to $email');
     } catch (e) {
       print('Failed to send temporary password: $e');
-      // Handle error appropriately
     }
   }
 
@@ -237,9 +249,9 @@ class _AddUserState extends State<AddUser> {
       required String surname,
       required String phoneNumber,
       required bool isDisabled}) async {
-    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-    var user = FirebaseAuth.instance.currentUser;
-    CollectionReference ref = firebaseFirestore.collection('users');
+    final firebaseFirestore = FirebaseFirestore.instance;
+    final user = FirebaseAuth.instance.currentUser;
+    final ref = firebaseFirestore.collection('users');
     ref.doc(user!.uid).set({
       'email': emailController.text,
       'role': role,
@@ -251,9 +263,9 @@ class _AddUserState extends State<AddUser> {
   }
 
   Future<void> updateDetails() async {
-    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-    var user = FirebaseAuth.instance.currentUser;
-    CollectionReference ref = firebaseFirestore.collection('users');
+    final firebaseFirestore = FirebaseFirestore.instance;
+    final user = FirebaseAuth.instance.currentUser;
+    final ref = firebaseFirestore.collection('users');
     await ref.doc(user!.uid).update({
       'email': emailController.text,
       'name': nameController.text,

@@ -1,8 +1,7 @@
-// ComplexityListPage.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:ppmt/screens/admin/master/complexity/add_complexity.dart';
+import 'package:ppmt/constants/color.dart';
 
 class ComplexityListPage extends StatelessWidget {
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
@@ -13,7 +12,18 @@ class ComplexityListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Complexity Levels"),
+        iconTheme: IconThemeData(
+          color: AppColor.white,
+        ),
+        backgroundColor: AppColor.sanMarino,
+        title: Text(
+          "Complexity Levels",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColor.white,
+          ),
+        ),
       ),
       body: StreamBuilder(
         stream: firebaseFirestore.collection('complexity').snapshots(),
@@ -22,37 +32,58 @@ class ComplexityListPage extends StatelessWidget {
             return const CircularProgressIndicator();
           }
 
-          // Extract the documents from the snapshot
           var complexityItems = snapshot.data!.docs;
 
-          // Function to build a ListTile from a document
-          ListTile buildTile(DocumentSnapshot document) {
+          Widget buildTile(DocumentSnapshot document) {
             Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-            return ListTile(
-              title: Text(
-                data['complexityName'],
+            Color tileColor = Colors.green;
+
+            switch (data['complexityName']) {
+              case 'High':
+                tileColor = Colors.red;
+                break;
+              case 'Medium':
+                tileColor = Colors.yellow;
+                break;
+              case 'Low':
+                tileColor = Colors.green;
+                break;
+              default:
+                tileColor = Colors.grey;
+            }
+
+            return Card(
+              color: tileColor,
+              margin: EdgeInsets.all(10),
+              child: ListTile(
+                title: Text(
+                  data['complexityName'],
+                  style: TextStyle(
+                    color: AppColor.black,
+                  ),
+                ),
               ),
-              // You can add more functionality or customize ListTile as needed
             );
           }
 
-          // Build the ListView with complexity items
           return ListView(
             children: complexityItems.map((doc) => buildTile(doc)).toList(),
           );
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        label: Text("Add Complexity"),
-        icon: Icon(CupertinoIcons.add),
+        label: Text(
+          "Add Complexity",
+          style: TextStyle(
+            color: AppColor.black,
+          ),
+        ),
+        icon: Icon(
+          CupertinoIcons.add,
+          color: AppColor.black,
+        ),
         onPressed: () {
-          // Navigate to the screen for adding a new complexity level
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddComplexity(),
-            ),
-          );
+          Navigator.of(context).pushNamed('/add_complexity');
         },
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ppmt/constants/color.dart';
 
 class Message extends StatefulWidget {
   const Message({super.key});
@@ -12,7 +13,18 @@ class _MessageState extends State<Message> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Messages'),
+        iconTheme: IconThemeData(
+          color: AppColor.white,
+        ),
+        backgroundColor: AppColor.sanMarino,
+        title: Text(
+          'Messages',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColor.white,
+          ),
+        ),
       ),
       body: Center(
         child: Text(

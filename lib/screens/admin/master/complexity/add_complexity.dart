@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/textfield.dart';
+import 'package:ppmt/constants/color.dart';
 
 class AddComplexity extends StatefulWidget {
   const AddComplexity({Key? key}) : super(key: key);
@@ -22,7 +23,20 @@ class AddComplexityState extends State<AddComplexity> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Add Complexity')),
+      appBar: AppBar(
+        iconTheme: IconThemeData(
+          color: AppColor.white,
+        ),
+        backgroundColor: AppColor.sanMarino,
+        title: Text(
+          'Add Complexity',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColor.white,
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -41,10 +55,17 @@ class AddComplexityState extends State<AddComplexity> {
                 labelText: 'Complexity Name',
                 obscureText: false,
               ),
-              SizedBox(height: 10),
-              button(
-                buttonName: 'Add Complexity',
-                onPressed: submit,
+              SizedBox(
+                height: 10,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(15),
+                child: button(
+                  buttonName: 'Add Complexity',
+                  onPressed: submit,
+                  backgroundColor: AppColor.black,
+                  textColor: AppColor.white,
+                ),
               ),
             ],
           ),
@@ -56,16 +77,22 @@ class AddComplexityState extends State<AddComplexity> {
   Future<void> submit() async {
     if (_formKey.currentState!.validate()) {
       try {
-        // Add new skill
         await AddComplexity();
-
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Complexity added successfully')),
+          SnackBar(
+            content: Text(
+              'Complexity added successfully',
+            ),
+          ),
         );
         Navigator.of(context).pop();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(
+            content: Text(
+              'Error: $e',
+            ),
+          ),
         );
       }
     }
@@ -77,7 +104,7 @@ class AddComplexityState extends State<AddComplexity> {
         'complexityName': complexityController.text.trim(),
       });
     } catch (e) {
-      throw ('Error adding complexity: $e');
+      throw ('Error adding complexity: $e',);
     }
   }
 }

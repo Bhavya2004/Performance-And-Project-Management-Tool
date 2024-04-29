@@ -20,17 +20,23 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Scaffold(
       backgroundColor: AppColor.white,
       appBar: AppBar(
-        centerTitle: true,
+        iconTheme: IconThemeData(
+          color: AppColor.white,
+        ),
+        backgroundColor: AppColor.sanMarino,
         title: Text(
           'Admin Dashboard',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
+            color: AppColor.white,
           ),
         ),
       ),
       body: Center(
-        child: Text("Admin Dashboard"),
+        child: Text(
+          "Admin Dashboard",
+        ),
       ),
       drawer: Drawer(
         child: ListView(
@@ -46,113 +52,141 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 }
                 if (snapshot.hasError) {
                   return DrawerHeader(
-                    child: Text("Error fetching user data"),
+                    child: Text(
+                      "Error fetching user data",
+                    ),
                   );
                 }
-                return DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: null, // Remove the border
-                  ),
-                  child: UserAccountsDrawerHeader(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                    ),
-                    accountName: Text(
-                      snapshot.data ?? "Loading...",
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.black,
-                      ),
-                    ),
-                    accountEmail: Text(
-                      firebaseAuth.currentUser!.email ?? "No email",
-                      style: TextStyle(
-                        color: Colors.black,
-                      ),
-                    ),
-                    currentAccountPictureSize: Size.square(50),
-                    currentAccountPicture: Align(
-                      alignment: Alignment.topLeft,
-                      child: CircleAvatar(
-                        backgroundColor: Colors.black,
-                        child: Text(
-                          snapshot.data != null
-                              ? snapshot.data![0].toUpperCase()
-                              : "?",
-                          style: TextStyle(
-                            fontSize: 25.0,
-                            color: Colors.white,
+                return Container(
+                  color: AppColor.sanMarino,
+                  width: double.infinity,
+                  height: 200,
+                  padding: EdgeInsets.only(top: 20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Align(
+                        alignment: Alignment.center,
+                        child: CircleAvatar(
+                          radius: 35,
+                          backgroundColor: AppColor.white,
+                          child: Text(
+                            snapshot.data != null
+                                ? snapshot.data![0].toUpperCase()
+                                : "?",
+                            style: TextStyle(
+                              fontSize: 30,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                      Text(
+                        snapshot.data ?? "Loading...",
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      ),
+                      Text(
+                        firebaseAuth.currentUser!.email ?? "No email",
+                        style: TextStyle(
+                          color: Colors.grey[200],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
             ),
             ListTile(
-              leading: Icon(CupertinoIcons.person),
-              title: Text('My Profile'),
+              leading: Icon(
+                CupertinoIcons.person,
+                color: AppColor.sanMarino,
+              ),
+              title: Text(
+                'My Profile',
+                style: TextStyle(
+                  color: AppColor.black,
+                ),
+              ),
               onTap: () {
-                Navigator.of(context).pushNamed('/profile').then(
-                  (value) async {
-                    Navigator.pop(context);
-                  },
-                );
+                Navigator.of(context).pushNamed('/profile');
               },
             ),
             ListTile(
-              leading: Icon(CupertinoIcons.bell_fill),
-              title: Text('Message'),
+              leading: Icon(
+                CupertinoIcons.bell_fill,
+                color: AppColor.sanMarino,
+              ),
+              title: Text(
+                'Message',
+                style: TextStyle(
+                  color: AppColor.black,
+                ),
+              ),
               onTap: () {
-                Navigator.of(context).pushNamed('/message').then(
-                  (value) async {
-                    Navigator.pop(context);
-                  },
-                );
+                Navigator.of(context).pushNamed('/message');
               },
             ),
             ListTile(
-              leading: Icon(CupertinoIcons.hexagon_fill),
-              title: const Text('Master'),
+              leading: Icon(
+                CupertinoIcons.hexagon_fill,
+                color: AppColor.sanMarino,
+              ),
+              title: Text(
+                'Master',
+                style: TextStyle(
+                  color: AppColor.black,
+                ),
+              ),
               onTap: () {
-                Navigator.of(context).pushNamed('/master').then(
-                  (value) async {
-                    Navigator.pop(context);
-                  },
-                );
+                Navigator.of(context).pushNamed('/master');
               },
             ),
             ListTile(
-              leading: const Icon(CupertinoIcons.projective),
-              title: const Text('Projects'),
+              leading: Icon(
+                CupertinoIcons.projective,
+                color: AppColor.sanMarino,
+              ),
+              title: Text(
+                'Projects',
+                style: TextStyle(
+                  color: AppColor.black,
+                ),
+              ),
               onTap: () {
-                Navigator.of(context).pushNamed('/projects').then(
-                  (value) async {
-                    Navigator.pop(context);
-                  },
-                );
+                Navigator.of(context).pushNamed('/projects');
               },
             ),
             ListTile(
-              leading: const Icon(CupertinoIcons.person_2_fill),
-              title: const Text('Members'),
+              leading: Icon(
+                CupertinoIcons.person_2_fill,
+                color: AppColor.sanMarino,
+              ),
+              title: Text(
+                'Members',
+                style: TextStyle(
+                  color: AppColor.black,
+                ),
+              ),
               onTap: () {
-                Navigator.of(context).pushNamed('/user_list').then(
-                  (value) async {
-                    Navigator.pop(context);
-                  },
-                );
+                Navigator.of(context).pushNamed('/user_list');
               },
             ),
             ListTile(
-              leading: const Icon(Icons.login_rounded),
+              leading: Icon(
+                Icons.login_rounded,
+                color: AppColor.sanMarino,
+              ),
               onTap: () async {
                 await FirebaseAuth.instance.signOut();
                 Navigator.pushReplacementNamed(context, '/signin');
               },
-              title: Text('Logout'),
+              title: Text(
+                'Logout',
+                style: TextStyle(
+                  color: AppColor.black,
+                ),
+              ),
             ),
           ],
         ),
@@ -169,12 +203,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
           .doc(user.uid)
           .get();
       if (snapshot.exists) {
-        // Check if the document contains the "name" field
         if (snapshot.data()!.containsKey('name')) {
-          // Return the value of the "name" field
           return snapshot.get('name');
         } else {
-          // Handle the case where the "name" field does not exist
           return "User";
         }
       }

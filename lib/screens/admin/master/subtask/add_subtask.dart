@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/textfield.dart';
+import 'package:ppmt/constants/color.dart';
 
 class AddSubTask extends StatefulWidget {
   final String taskId; // Task ID for associating the subtask with a task
@@ -36,7 +37,18 @@ class _AddSubTaskState extends State<AddSubTask> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditMode ? "Edit Sub Task" : "Add Sub Task"),
+        iconTheme: IconThemeData(
+          color: AppColor.white,
+        ),
+        backgroundColor: AppColor.sanMarino,
+        title: Text(
+          widget.isEditMode ? "Update Sub Task" : "Add Sub Task",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColor.white,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -55,11 +67,15 @@ class _AddSubTaskState extends State<AddSubTask> {
                   return null;
                 },
               ),
-              button(
-                buttonName: widget.isEditMode
-                    ? "Update Sub Task"
-                    : "Add Sub Task", // Change button label based on mode
-                onPressed: submit,
+              Padding(
+                padding: const EdgeInsets.all(15),
+                child: button(
+                  buttonName:
+                      widget.isEditMode ? "Update Sub Task" : "Add Sub Task",
+                  backgroundColor: AppColor.black,
+                  textColor: AppColor.white,
+                  onPressed: submit,
+                ),
               )
             ],
           ),
@@ -100,7 +116,7 @@ class _AddSubTaskState extends State<AddSubTask> {
       await ref.add({
         'subTaskID': newSubTaskID.toString(),
         'subTaskName': subTaskName,
-        'taskId': widget.taskId, // Associate subtask with the task
+        'taskId': widget.taskId,
       });
     } catch (e) {
       throw ('Error adding subtask: $e');
@@ -124,17 +140,17 @@ class _AddSubTaskState extends State<AddSubTask> {
     if (_formKey.currentState!.validate()) {
       try {
         if (widget.isEditMode) {
-          // If in edit mode, update the existing subtask
           await updateSubTask(
               subTaskId: widget.subTaskID!,
               subTaskName: subTaskController.text.toString());
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Sub Task Updated Successfully'),
+              content: Text(
+                'Sub Task Updated Successfully',
+              ),
             ),
           );
         } else {
-          // If not in edit mode, add a new subtask
           await AddSubTask(subTaskName: subTaskController.text.toString());
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

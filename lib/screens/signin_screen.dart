@@ -39,64 +39,80 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Form(
-            key: _formSignInKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 50),
-                const Icon(
-                  Icons.lock,
-                  size: 100,
-                ),
-                const SizedBox(height: 50),
-                Text(
-                  'Welcome back you\'ve been missed!',
-                  style: TextStyle(
-                    color: AppColor.black,
-                    fontSize: 16,
+      appBar: AppBar(
+        backgroundColor: kBackgroundColor,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: CustomScrollView(
+          reverse: true,
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Form(
+                  key: _formSignInKey,
+                  child: Column(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Welcome back.",
+                            style: kHeadline,
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Text(
+                            "You've been missed!",
+                            style: kBodyText2,
+                          ),
+                          SizedBox(
+                            height: 60,
+                          ),
+                          textFormField(
+                            controller: emailController,
+                            obscureText: false,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Email is required";
+                              }
+                              return null;
+                            },
+                            keyboardType: TextInputType.text,
+                            labelText: 'Email',
+                          ),
+                          textFormField(
+                            controller: passwordController,
+                            obscureText: true,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Password is required";
+                              }
+                              return null;
+                            },
+                            keyboardType: TextInputType.text,
+                            labelText: 'Password',
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          button(
+                            buttonName: 'Sign In',
+                            onPressed: signUserIn,
+                            backgroundColor: Colors.black,
+                            textColor: Colors.white,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 25),
-                textFormField(
-                  controller: emailController,
-                  obscureText: false,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return "Email is required";
-                    }
-                    return null;
-                  },
-                  keyboardType: TextInputType.text,
-                  labelText: 'Email',
-                ),
-                const SizedBox(height: 10),
-                textFormField(
-                  controller: passwordController,
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return "Password is required";
-                    }
-                    return null;
-                  },
-                  keyboardType: TextInputType.text,
-                  labelText: 'Password',
-                ),
-                const SizedBox(height: 10),
-                const SizedBox(height: 25),
-                button(
-                  buttonName: "Login",
-                  onPressed: signUserIn,
-                ),
-                const SizedBox(height: 50),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
