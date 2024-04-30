@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/widgets.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/snackbar.dart';
 
@@ -68,6 +67,12 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
           .where('levelName', isEqualTo: _selectedLevel)
           .get();
 
+      // Log query parameters and results
+      print('userId: ${widget.userId}');
+      print('_selectedSkill: $_selectedSkill');
+      print('_selectedLevel: $_selectedLevel');
+      print('existingRecords.docs.length: ${existingRecords.docs.length}');
+
       // If any existing records are found, show an error message
       if (existingRecords.docs.isNotEmpty) {
         showSnackBar(
@@ -83,15 +88,26 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
             .where('skillName', isEqualTo: _selectedSkill)
             .get();
 
+        // Log query parameters and results
+        print('userSkillLevel.docs.length: ${userSkillLevel.docs.length}');
+
         // If the user already has this skill and level combination, update it
         if (userSkillLevel.docs.isNotEmpty) {
-          userSkillLevel.docs.forEach((doc) async {
-            await _firestore.collection('userSkillsLevels').doc(doc.id).update({
+          // Get the document ID of the first matching record
+          String documentId = userSkillLevel.docs.first.id;
+          try {
+            // Update the specific record using its document ID
+            await _firestore.collection('userSkillsLevels').doc(documentId).update({
               'levelName': _selectedLevel,
             });
-          });
-        } else {
+            print('Record updated successfully');
+          } catch (e) {
+            print('Error updating record: $e');
+          }
+        }
+        else {
           // If the user doesn't have this skill and level combination, add it
+          print('Adding new record');
           await _firestore.collection('userSkillsLevels').add({
             'userId': widget.userId,
             'skillName': _selectedSkill,
