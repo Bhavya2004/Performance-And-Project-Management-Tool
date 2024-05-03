@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/components/button.dart';
+import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/components/textfield.dart';
 import 'package:ppmt/constants/color.dart';
 
@@ -31,15 +33,15 @@ class _AddLevelState extends State<AddLevel> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         iconTheme: IconThemeData(
-          color: AppColor.white,
+          color: CupertinoColors.white,
         ),
-        backgroundColor: AppColor.sanMarino,
+        backgroundColor: kAppBarColor,
         title: Text(
           widget.levelID.isEmpty ? "Add Level" : "Update Level",
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: AppColor.white,
+            color: CupertinoColors.white,
           ),
         ),
       ),
@@ -79,8 +81,8 @@ class _AddLevelState extends State<AddLevel> {
       child: button(
         buttonName: widget.levelName.isNotEmpty ? "Update Level" : "Add Level",
         onPressed: submit,
-        backgroundColor: AppColor.black,
-        textColor: AppColor.white,
+        backgroundColor: CupertinoColors.black,
+        textColor: CupertinoColors.white,
       ),
     );
   }
@@ -90,22 +92,14 @@ class _AddLevelState extends State<AddLevel> {
       try {
         if (widget.levelName.isNotEmpty) {
           await updateLevelDetails();
+          showSnackBar(context: context, message: "Level Updated Successfully");
         } else {
           await addLevelDetails(level: levelController.text);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Level Added Successfully'),
-            ),
-          );
+          showSnackBar(context: context, message: "Level Added Successfully");
         }
         Navigator.of(context).pop();
       } catch (e) {
-        print('Error: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-          ),
-        );
+        showSnackBar(context: context, message: "Error: $e");
       }
     }
   }

@@ -12,27 +12,16 @@ class LevelListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: AppColor.white,
-        ),
-        backgroundColor: AppColor.sanMarino,
-        title: Text(
-          "Levels",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColor.white,
-          ),
-        ),
-      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: firebaseFirestore.collection('levels').snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return const CircularProgressIndicator();
+            return Center(
+              child: CupertinoActivityIndicator(
+                color: kAppBarColor,
+              ),
+            );
           }
-
           List<DocumentSnapshot> sortedDocs = snapshot.data!.docs.toList()
             ..sort((a, b) {
               bool aDisabled = a['isDisabled'] ?? false;
@@ -45,7 +34,6 @@ class LevelListPage extends StatelessWidget {
                 return 0;
               }
             });
-
           return ListView.builder(
             itemCount: sortedDocs.length,
             itemBuilder: (context, index) {
@@ -54,21 +42,6 @@ class LevelListPage extends StatelessWidget {
               return buildCard(context, doc, data);
             },
           );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        label: Text(
-          "Add Level",
-          style: TextStyle(
-            color: AppColor.black,
-          ),
-        ),
-        icon: Icon(
-          CupertinoIcons.add,
-          color: AppColor.black,
-        ),
-        onPressed: () {
-          Navigator.of(context).pushNamed('/add_level');
         },
       ),
     );
@@ -84,37 +57,59 @@ class LevelListPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             GestureDetector(
-              onTap: data['isDisabled']
-                  ? null
-                  : () async {
-                      String levelName = data['levelName'];
-                      String levelID = data['levelID'];
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddLevel(
-                            levelName: levelName,
-                            levelID: levelID,
-                          ),
-                        ),
-                      );
-                    },
               child: Text(
                 data['levelName'],
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            IconButton(
-              icon: data['isDisabled']
-                  ? Icon(Icons.visibility_off)
-                  : Icon(Icons.visibility),
-              onPressed: () async {
-                await firebaseFirestore
-                    .collection('levels')
-                    .doc(document.id)
-                    .update({
-                  'isDisabled': data['isDisabled'] == true ? false : true,
-                });
-              },
+            Row(
+              children: [
+                IconButton(
+                  icon: data['isDisabled']
+                      ? SizedBox()
+                      : Icon(
+                          CupertinoIcons.pencil,
+                          color: kEditColor,
+                        ),
+                  onPressed: data['isDisabled']
+                      ? null
+                      : () async {
+                          String levelName = data['levelName'];
+                          String levelID = data['levelID'];
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddLevel(
+                                levelName: levelName,
+                                levelID: levelID,
+                              ),
+                            ),
+                          );
+                        },
+                ),
+                IconButton(
+                  icon: data['isDisabled']
+                      ? Icon(
+                          Icons.visibility_off,
+                          color: kDeleteColor,
+                        )
+                      : Icon(
+                          Icons.visibility,
+                          color: kAppBarColor,
+                        ),
+                  onPressed: () async {
+                    await firebaseFirestore
+                        .collection('levels')
+                        .doc(document.id)
+                        .update({
+                      'isDisabled': data['isDisabled'] == true ? false : true,
+                    });
+                  },
+                ),
+              ],
             ),
           ],
         ),

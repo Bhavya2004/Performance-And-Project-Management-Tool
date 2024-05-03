@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/components/button.dart';
+import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/components/textfield.dart';
 import 'package:ppmt/constants/color.dart';
 
@@ -25,15 +27,15 @@ class AddComplexityState extends State<AddComplexity> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(
-          color: AppColor.white,
+          color: CupertinoColors.white,
         ),
-        backgroundColor: AppColor.sanMarino,
+        backgroundColor: kAppBarColor,
         title: Text(
           'Add Complexity',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: AppColor.white,
+            color: CupertinoColors.white,
           ),
         ),
       ),
@@ -63,8 +65,8 @@ class AddComplexityState extends State<AddComplexity> {
                 child: button(
                   buttonName: 'Add Complexity',
                   onPressed: submit,
-                  backgroundColor: AppColor.black,
-                  textColor: AppColor.white,
+                  backgroundColor: CupertinoColors.black,
+                  textColor: CupertinoColors.white,
                 ),
               ),
             ],
@@ -78,22 +80,10 @@ class AddComplexityState extends State<AddComplexity> {
     if (_formKey.currentState!.validate()) {
       try {
         await AddComplexity();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Complexity added successfully',
-            ),
-          ),
-        );
+        showSnackBar(context: context, message: "Complexity Added Successfully");
         Navigator.of(context).pop();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error: $e',
-            ),
-          ),
-        );
+        showSnackBar(context: context, message: "Error: $e");
       }
     }
   }

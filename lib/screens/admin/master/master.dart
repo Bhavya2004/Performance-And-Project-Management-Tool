@@ -1,6 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
+import 'package:ppmt/screens/admin/master/complexity/complexity_list.dart';
+import 'package:ppmt/screens/admin/master/level/level_list.dart';
+import 'package:ppmt/screens/admin/master/skill/skill_list.dart';
+import 'package:ppmt/screens/admin/master/task/task_list.dart';
 
 class Master extends StatefulWidget {
   const Master({Key? key}) : super(key: key);
@@ -9,118 +14,141 @@ class Master extends StatefulWidget {
   State<Master> createState() => _MasterState();
 }
 
-class _MasterState extends State<Master> {
+class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+  late TabController _tabController;
+  final List<String> tabTitles = ['Levels', 'Skills', 'Complexity', 'Task'];
+  String currentTabTitle = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+      length: 4,
+      vsync: this,
+    );
+    _tabController.addListener(_handleTabSelection);
+    currentTabTitle = tabTitles[0];
+  }
+
+  void _handleTabSelection() {
+    setState(() {
+      currentTabTitle = tabTitles[_tabController.index];
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: AppColor.white,
-        ),
-        backgroundColor: AppColor.sanMarino,
-        title: Text(
-          'Master',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColor.white,
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            buildCard(
-              onTap: () {
-                Navigator.of(context).pushNamed("/level_list");
-              },
-              icon: "assets/icons/levels.png",
-              label: "Levels",
-              stream: firebaseFirestore.collection('levels').snapshots(),
-            ),
-            buildCard(
-              onTap: () {
-                Navigator.of(context).pushNamed("/skill_list");
-              },
-              icon: "assets/icons/skills.png",
-              label: "Skills",
-              stream: firebaseFirestore.collection('skills').snapshots(),
-            ),
-            buildCard(
-              onTap: () {
-                Navigator.of(context).pushNamed("/complexity_list");
-              },
-              icon: "assets/icons/complexity.png",
-              label: "Complexity",
-              stream: firebaseFirestore.collection('complexity').snapshots(),
-            ),
-            buildCard(
-              onTap: () {
-                Navigator.of(context).pushNamed("/task_list");
-              },
-              icon: "assets/icons/tasks.png",
-              label: "Task",
-              stream: firebaseFirestore.collection('tasks').snapshots(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget buildCard({
-    required VoidCallback onTap,
-    required String icon,
-    required String label,
-    required Stream<QuerySnapshot> stream,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        margin: EdgeInsets.all(10),
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Row(
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
+        appBar: AppBar(
+          iconTheme: IconThemeData(color: CupertinoColors.white),
+          backgroundColor: kAppBarColor,
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Image.asset(
-                icon,
-                height: 75,
-                width: 75,
+              Text(
+                "Master",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: CupertinoColors.white,
+                ),
               ),
-              SizedBox(width: 20),
-              StreamBuilder<QuerySnapshot>(
-                stream: stream,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          label,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          "(${snapshot.data!.docs.length})",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                  return CircularProgressIndicator();
-                },
+              Text(
+                currentTabTitle,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: kButtonColor,
+                ),
               ),
             ],
+          ),
+          bottom: TabBar(
+            controller: _tabController,
+            labelColor: Colors.orange,
+            indicatorColor: kButtonColor,
+            labelStyle: TextStyle(
+              fontFamily: "SF-Pro",
+              fontSize: 11,
+            ),
+            physics: ScrollPhysics(),
+            indicatorWeight: 1,
+            unselectedLabelColor: CupertinoColors.white,
+            tabs: [
+              Tab(
+                icon: Image.asset(
+                  'assets/icons/levels.png',
+                  width: 25,
+                  height: 25,
+                  color: kButtonColor,
+                ),
+              ),
+              Tab(
+                icon: Image.asset(
+                  'assets/icons/skills.png',
+                  width: 25,
+                  height: 25,
+                  color: kButtonColor,
+                ),
+              ),
+              Tab(
+                icon: Image.asset(
+                  'assets/icons/complexity.png',
+                  width: 25,
+                  height: 25,
+                  color: kButtonColor,
+                ),
+              ),
+              Tab(
+                icon: Image.asset(
+                  'assets/icons/tasks.png',
+                  width: 25,
+                  height: 25,
+                  color: kButtonColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            LevelListPage(),
+            SkillListPage(),
+            ComplexityListPage(),
+            TaskList(),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          isExtended: true,
+          onPressed: () {
+            switch (_tabController.index) {
+              case 0:
+                Navigator.of(context).pushNamed('/add_level');
+                break;
+              case 1:
+                Navigator.of(context).pushNamed('/add_skill');
+                break;
+              case 2:
+                Navigator.of(context).pushNamed('/add_complexity');
+                break;
+              case 3:
+                Navigator.of(context).pushNamed('/add_task');
+                break;
+            }
+          },
+          backgroundColor: Colors.orange.shade700,
+          child: Icon(
+            Icons.add,
+            color: Colors.orange.shade100,
           ),
         ),
       ),

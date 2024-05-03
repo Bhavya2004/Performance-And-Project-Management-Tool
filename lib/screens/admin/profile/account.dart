@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
 
@@ -14,15 +15,15 @@ class _AccountState extends State<Account> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(
-          color: AppColor.white,
+          color: CupertinoColors.white,
         ),
-        backgroundColor: AppColor.sanMarino,
+        backgroundColor: kAppBarColor,
         title: Text(
           'My Profile',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: AppColor.white,
+            color: CupertinoColors.white,
           ),
         ),
       ),

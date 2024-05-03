@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/components/button.dart';
+import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/components/textfield.dart';
 import 'package:ppmt/constants/color.dart';
 
@@ -30,15 +32,15 @@ class AddSkillState extends State<AddSkill> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(
-          color: AppColor.white,
+          color: CupertinoColors.white,
         ),
-        backgroundColor: AppColor.sanMarino,
+        backgroundColor: kAppBarColor,
         title: Text(
           widget.skillID.isEmpty ? 'Add Skill' : 'Update Skill',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: AppColor.white,
+            color: CupertinoColors.white,
           ),
         ),
       ),
@@ -52,7 +54,7 @@ class AddSkillState extends State<AddSkill> {
                 controller: skillController,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a skill name';
+                    return "Skill is required";
                   }
                   return null;
                 },
@@ -68,8 +70,8 @@ class AddSkillState extends State<AddSkill> {
                       ? 'Update Skill'
                       : 'Add Skill',
                   onPressed: submit,
-                  backgroundColor: AppColor.black,
-                  textColor: AppColor.white,
+                  backgroundColor: CupertinoColors.black,
+                  textColor: CupertinoColors.white,
                 ),
               ),
             ],
@@ -84,23 +86,14 @@ class AddSkillState extends State<AddSkill> {
       try {
         if (widget.skillName.isNotEmpty) {
           await updateSkill();
+          showSnackBar(context: context, message: "Skill Updated Successfully");
         } else {
           await addSkill();
+          showSnackBar(context: context, message: "Skill Added Successfully");
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Skill ${widget.skillName.isNotEmpty ? 'updated' : 'added'} successfully',
-            ),
-          ),
-        );
         Navigator.of(context).pop();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-          ),
-        );
+        showSnackBar(context: context, message: "Error: $e");
       }
     }
   }

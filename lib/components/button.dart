@@ -6,7 +6,7 @@ Widget button(
     dynamic backgroundColor,
     dynamic textColor}) {
   return Container(
-    height: 60,
+    height: 45,
     width: double.infinity,
     decoration: BoxDecoration(
       color: backgroundColor,

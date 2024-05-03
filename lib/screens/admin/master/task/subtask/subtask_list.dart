@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/constants/color.dart';
-import 'package:ppmt/screens/admin/master/subtask/add_subtask.dart';
+import 'package:ppmt/screens/admin/master/task/subtask/add_subtask.dart';
 
 class SubTaskList extends StatefulWidget {
   final String taskId;

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/master/skill/add_skill.dart';
@@ -11,25 +12,15 @@ class SkillListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: AppColor.white,
-        ),
-        backgroundColor: AppColor.sanMarino,
-        title: Text(
-          "Skills",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColor.white,
-          ),
-        ),
-      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: firebaseFirestore.collection('skills').snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return Center(
+              child: CupertinoActivityIndicator(
+                color: kAppBarColor,
+              ),
+            );
           }
 
           List<DocumentSnapshot> sortedDocs = snapshot.data!.docs.toList()
@@ -55,21 +46,6 @@ class SkillListPage extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        label: Text(
-          "Add Skill",
-          style: TextStyle(
-            color: AppColor.black,
-          ),
-        ),
-        icon: Icon(
-          Icons.add,
-          color: AppColor.black,
-        ),
-        onPressed: () {
-          Navigator.of(context).pushNamed('/add_skill');
-        },
-      ),
     );
   }
 
@@ -83,35 +59,57 @@ class SkillListPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             GestureDetector(
-              onTap: data['isDisabled']
-                  ? null
-                  : () async {
-                      String skillName = data['skillName'];
-                      String skillID = document.id;
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddSkill(
-                            skillName: skillName,
-                            skillID: skillID,
-                          ),
-                        ),
-                      );
-                    },
               child: Text(
                 data['skillName'],
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            IconButton(
-              icon: data['isDisabled']
-                  ? Icon(Icons.visibility_off)
-                  : Icon(Icons.visibility),
-              onPressed: () async {
-                await firebaseFirestore
-                    .collection('skills')
-                    .doc(document.id)
-                    .update({'isDisabled': !data['isDisabled']});
-              },
+            Row(
+              children: [
+                IconButton(
+                  icon: data['isDisabled']
+                      ? SizedBox()
+                      : Icon(
+                    CupertinoIcons.pencil,
+                    color: kEditColor,
+                  ),
+                  onPressed: data['isDisabled']
+                      ? null
+                      : () async {
+                    String skillName = data['skillName'];
+                    String skillID = document.id;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddSkill(
+                          skillName: skillName,
+                          skillID: skillID,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: data['isDisabled']
+                      ? Icon(
+                    Icons.visibility_off,
+                    color: kDeleteColor,
+                  )
+                      : Icon(
+                    Icons.visibility,
+                    color: kAppBarColor,
+                  ),
+                  onPressed: () async {
+                    await firebaseFirestore
+                        .collection('skills')
+                        .doc(document.id)
+                        .update({'isDisabled': !data['isDisabled']});
+                  },
+                ),
+              ],
             ),
           ],
         ),

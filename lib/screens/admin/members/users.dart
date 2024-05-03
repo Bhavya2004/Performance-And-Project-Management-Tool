@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/members/skill_level.dart';
@@ -18,15 +19,15 @@ class _UsersState extends State<Users> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(
-          color: AppColor.white,
+          color: CupertinoColors.white,
         ),
-        backgroundColor: AppColor.sanMarino,
+        backgroundColor: kAppBarColor,
         title: Text(
           'Users',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: AppColor.white,
+            color: CupertinoColors.white,
           ),
         ),
       ),
@@ -75,12 +76,12 @@ class _UsersState extends State<Users> {
         },
         icon: Icon(
           Icons.add,
-          color: AppColor.black,
+          color: CupertinoColors.black,
         ),
         label: Text(
           "Add Member",
           style: TextStyle(
-            color: AppColor.black,
+            color: CupertinoColors.black,
           ),
         ),
       ),

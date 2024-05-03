@@ -6,17 +6,17 @@ import 'package:ppmt/components/textfield.dart';
 import 'package:ppmt/constants/color.dart';
 
 class AddSubTask extends StatefulWidget {
-  final String taskId; // Task ID for associating the subtask with a task
+  final String taskId;
   final String?
-      subTaskID; // Subtask ID for identifying the subtask in edit mode
-  final String? subTaskName; // Subtask name for pre-filling in edit mode
-  final bool isEditMode; // Indicates if it's edit mode or not
+      subTaskID;
+  final String? subTaskName;
+  final bool isEditMode;
 
   const AddSubTask({
     required this.taskId,
     this.subTaskID,
     this.subTaskName,
-    this.isEditMode = false, // Default to false
+    this.isEditMode = false,
     Key? key,
   }) : super(key: key);
 

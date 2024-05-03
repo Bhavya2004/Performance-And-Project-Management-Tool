@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/constants/color.dart';
@@ -45,9 +46,9 @@ class _SkillLevelState extends State<SkillLevel> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(
-          color: AppColor.white,
+          color: CupertinoColors.white,
         ),
-        backgroundColor: AppColor.sanMarino,
+        backgroundColor: kAppBarColor,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -56,7 +57,7 @@ class _SkillLevelState extends State<SkillLevel> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColor.white,
+                color: CupertinoColors.white,
               ),
             ),
             SizedBox(
@@ -67,7 +68,7 @@ class _SkillLevelState extends State<SkillLevel> {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: AppColor.white,
+                color: CupertinoColors.white,
               ),
             ),
           ],

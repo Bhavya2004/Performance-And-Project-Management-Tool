@@ -11,45 +11,35 @@ class ComplexityListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: AppColor.white,
-        ),
-        backgroundColor: AppColor.sanMarino,
-        title: Text(
-          "Complexity Levels",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColor.white,
-          ),
-        ),
-      ),
       body: StreamBuilder(
         stream: firebaseFirestore.collection('complexity').snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return const CircularProgressIndicator();
+            return Center(
+              child: CupertinoActivityIndicator(
+                color: kAppBarColor,
+              ),
+            );
           }
 
           var complexityItems = snapshot.data!.docs;
 
           Widget buildTile(DocumentSnapshot document) {
             Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-            Color tileColor = Colors.green;
+            Color tileColor = CupertinoColors.lightBackgroundGray;
 
             switch (data['complexityName']) {
               case 'High':
-                tileColor = Colors.red;
+                tileColor = CupertinoColors.destructiveRed;
                 break;
               case 'Medium':
-                tileColor = Colors.yellow;
+                tileColor = CupertinoColors.systemYellow;
                 break;
               case 'Low':
-                tileColor = Colors.green;
+                tileColor = CupertinoColors.activeGreen;
                 break;
               default:
-                tileColor = Colors.grey;
+                tileColor = CupertinoColors.lightBackgroundGray;
             }
 
             return Card(
@@ -59,7 +49,9 @@ class ComplexityListPage extends StatelessWidget {
                 title: Text(
                   data['complexityName'],
                   style: TextStyle(
-                    color: AppColor.black,
+                    color: CupertinoColors.black,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -69,21 +61,6 @@ class ComplexityListPage extends StatelessWidget {
           return ListView(
             children: complexityItems.map((doc) => buildTile(doc)).toList(),
           );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        label: Text(
-          "Add Complexity",
-          style: TextStyle(
-            color: AppColor.black,
-          ),
-        ),
-        icon: Icon(
-          CupertinoIcons.add,
-          color: AppColor.black,
-        ),
-        onPressed: () {
-          Navigator.of(context).pushNamed('/add_complexity');
         },
       ),
     );

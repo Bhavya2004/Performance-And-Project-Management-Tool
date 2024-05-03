@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
 
@@ -11,7 +12,7 @@ void showSnackBar({dynamic message, dynamic context}) {
         ),
       ),
       duration: Duration(seconds: 2),
-      backgroundColor: AppColor.black,
+      backgroundColor: CupertinoColors.black,
     ),
   );
 }

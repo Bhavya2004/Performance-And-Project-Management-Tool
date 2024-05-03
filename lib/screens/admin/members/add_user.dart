@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/textfield.dart';
@@ -62,15 +63,15 @@ class _AddUserState extends State<AddUser> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(
-          color: AppColor.white,
+          color: CupertinoColors.white,
         ),
-        backgroundColor: AppColor.sanMarino,
+        backgroundColor: kAppBarColor,
         title: Text(
           widget.isProfileEditing ? "Update User" : "Add User",
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: AppColor.white,
+            color: CupertinoColors.white,
           ),
         ),
       ),
@@ -139,8 +140,8 @@ class _AddUserState extends State<AddUser> {
                     child: button(
                       buttonName:
                           widget.isProfileEditing ? "Update User" : "Add User",
-                      backgroundColor: AppColor.black,
-                      textColor: AppColor.white,
+                      backgroundColor: CupertinoColors.black,
+                      textColor: CupertinoColors.white,
                       onPressed: widget.isProfileEditing ? editUser : addUser,
                     ),
                   ),

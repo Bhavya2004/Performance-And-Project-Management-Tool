@@ -18,18 +18,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColor.white,
+      backgroundColor: CupertinoColors.white,
       appBar: AppBar(
         iconTheme: IconThemeData(
-          color: AppColor.white,
+          color: CupertinoColors.white,
         ),
-        backgroundColor: AppColor.sanMarino,
+        backgroundColor: kAppBarColor,
         title: Text(
           'Admin Dashboard',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: AppColor.white,
+            color: CupertinoColors.white,
           ),
         ),
       ),
@@ -58,7 +58,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   );
                 }
                 return Container(
-                  color: AppColor.sanMarino,
+                  color: kAppBarColor,
                   width: double.infinity,
                   height: 200,
                   padding: EdgeInsets.only(top: 20.0),
@@ -69,7 +69,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         alignment: Alignment.center,
                         child: CircleAvatar(
                           radius: 35,
-                          backgroundColor: AppColor.white,
+                          backgroundColor: CupertinoColors.white,
                           child: Text(
                             snapshot.data != null
                                 ? snapshot.data![0].toUpperCase()
@@ -100,12 +100,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ListTile(
               leading: Icon(
                 CupertinoIcons.person,
-                color: AppColor.sanMarino,
+                color: kAppBarColor,
               ),
               title: Text(
                 'My Profile',
                 style: TextStyle(
-                  color: AppColor.black,
+                  color: CupertinoColors.black,
                 ),
               ),
               onTap: () {
@@ -115,12 +115,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ListTile(
               leading: Icon(
                 CupertinoIcons.bell_fill,
-                color: AppColor.sanMarino,
+                color: kAppBarColor,
               ),
               title: Text(
                 'Message',
                 style: TextStyle(
-                  color: AppColor.black,
+                  color: CupertinoColors.black,
                 ),
               ),
               onTap: () {
@@ -130,12 +130,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ListTile(
               leading: Icon(
                 CupertinoIcons.hexagon_fill,
-                color: AppColor.sanMarino,
+                color: kAppBarColor,
               ),
               title: Text(
                 'Master',
                 style: TextStyle(
-                  color: AppColor.black,
+                  color: CupertinoColors.black,
                 ),
               ),
               onTap: () {
@@ -145,12 +145,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ListTile(
               leading: Icon(
                 CupertinoIcons.projective,
-                color: AppColor.sanMarino,
+                color: kAppBarColor,
               ),
               title: Text(
                 'Projects',
                 style: TextStyle(
-                  color: AppColor.black,
+                  color: CupertinoColors.black,
                 ),
               ),
               onTap: () {
@@ -160,12 +160,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ListTile(
               leading: Icon(
                 CupertinoIcons.person_2_fill,
-                color: AppColor.sanMarino,
+                color: kAppBarColor,
               ),
               title: Text(
                 'Members',
                 style: TextStyle(
-                  color: AppColor.black,
+                  color: CupertinoColors.black,
                 ),
               ),
               onTap: () {
@@ -175,7 +175,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ListTile(
               leading: Icon(
                 Icons.login_rounded,
-                color: AppColor.sanMarino,
+                color: kAppBarColor,
               ),
               onTap: () async {
                 await FirebaseAuth.instance.signOut();
@@ -184,7 +184,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               title: Text(
                 'Logout',
                 style: TextStyle(
-                  color: AppColor.black,
+                  color: CupertinoColors.black,
                 ),
               ),
             ),
