@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/textfield.dart';
@@ -38,15 +39,15 @@ class _AddSubTaskState extends State<AddSubTask> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(
-          color: AppColor.white,
+          color: CupertinoColors.white,
         ),
-        backgroundColor: AppColor.sanMarino,
+        backgroundColor: kAppBarColor,
         title: Text(
           widget.isEditMode ? "Update Sub Task" : "Add Sub Task",
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: AppColor.white,
+            color: CupertinoColors.white,
           ),
         ),
       ),
@@ -72,8 +73,8 @@ class _AddSubTaskState extends State<AddSubTask> {
                 child: button(
                   buttonName:
                       widget.isEditMode ? "Update Sub Task" : "Add Sub Task",
-                  backgroundColor: AppColor.black,
-                  textColor: AppColor.white,
+                  backgroundColor: CupertinoColors.black,
+                  textColor: CupertinoColors.white,
                   onPressed: submit,
                 ),
               )
