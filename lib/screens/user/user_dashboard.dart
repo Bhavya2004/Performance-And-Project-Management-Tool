@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/members/add_user.dart';
 import 'package:ppmt/screens/user/user_skill_level.dart';
 
@@ -18,39 +20,29 @@ class _UserDashboardState extends State<UserDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('User Dashboard'),
-        actions: [
-          PopupMenuButton(
-            itemBuilder: (BuildContext context) {
-              return [
-                PopupMenuItem(
-                  child: Text('My Profile'),
-                  value: 1,
-                ),
-                PopupMenuItem(
-                  child: ListTile(
-                    onTap: () async {
-                      await FirebaseAuth.instance.signOut();
-                      Navigator.pushReplacementNamed(context, '/signin');
-                    },
-                    title: Text('Logout'),
-                  ),
-                  value: 2,
-                ),
-              ];
-            },
-            onSelected: (value) async {
-              if (value == 1) {}
-            },
+        iconTheme: IconThemeData(
+          color: CupertinoColors.white,
+        ),
+        backgroundColor: kAppBarColor,
+        title: Text(
+          'User Dashboard',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: CupertinoColors.white,
           ),
-        ],
+        ),
       ),
       body: Center(
         child: StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
+              return Center(
+                child: CupertinoActivityIndicator(
+                  color: kAppBarColor,
+                ),
+              );
             }
             if (snapshot.hasData && snapshot.data != null) {
               return Text('Logged in as ${snapshot.data!.email}');
@@ -61,74 +53,85 @@ class _UserDashboardState extends State<UserDashboard> {
       ),
       drawer: Drawer(
         child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
+          padding: EdgeInsets.all(0),
+          children: [
             FutureBuilder(
-              future: _getUserDisplayName(),
+              future: getUserDisplayName(),
               builder: (context, AsyncSnapshot<String> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return DrawerHeader(
-                    child: CircularProgressIndicator(),
+                    child: Center(
+                      child: CupertinoActivityIndicator(
+                        color: kAppBarColor,
+                      ),
+                    ),
                   );
                 }
                 if (snapshot.hasError) {
                   return DrawerHeader(
-                    child: Text("Error fetching user data"),
+                    child: Text(
+                      "Error fetching user data",
+                    ),
                   );
                 }
-                return DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: null, // Remove the border
-                  ),
-                  child: UserAccountsDrawerHeader(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                    ),
-                    accountName: Text(
-                      snapshot.data ?? "Loading...",
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.black,
-                      ),
-                    ),
-                    accountEmail: Text(
-                      firebaseAuth.currentUser!.email ?? "No email",
-                      style: TextStyle(
-                        color: Colors.black,
-                      ),
-                    ),
-                    currentAccountPictureSize: Size.square(50),
-                    currentAccountPicture: Align(
-                      alignment: Alignment.topLeft,
-                      child: CircleAvatar(
-                        backgroundColor: Colors.black,
-                        child: Text(
-                          snapshot.data != null
-                              ? snapshot.data![0].toUpperCase()
-                              : "?",
-                          style: TextStyle(
-                            fontSize: 25.0,
-                            color: Colors.white,
+                return Container(
+                  color: kAppBarColor,
+                  width: double.infinity,
+                  height: 200,
+                  padding: EdgeInsets.only(top: 20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Align(
+                        alignment: Alignment.center,
+                        child: CircleAvatar(
+                          radius: 35,
+                          backgroundColor: CupertinoColors.white,
+                          child: Text(
+                            snapshot.data != null
+                                ? snapshot.data![0].toUpperCase()
+                                : "?",
+                            style: TextStyle(
+                              fontSize: 30,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                      Text(
+                        snapshot.data ?? "Loading...",
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      ),
+                      Text(
+                        firebaseAuth.currentUser!.email ?? "No email",
+                        style: TextStyle(
+                          color: Colors.grey[200],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
             ),
             ListTile(
-              title: Text('My Profile'),
+              leading: Icon(
+                CupertinoIcons.person,
+                color: kAppBarColor,
+              ),
+              title: Text(
+                'My Profile',
+                style: TextStyle(
+                  color: CupertinoColors.black,
+                ),
+              ),
               onTap: () async {
-                // Fetch user details from Firestore
                 String uid = FirebaseAuth.instance.currentUser!.uid;
                 DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
                     .collection('users')
                     .doc(uid)
                     .get();
                 if (userSnapshot.exists) {
-                  // Navigate to AddUser page and pass user's details
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -137,7 +140,7 @@ class _UserDashboardState extends State<UserDashboard> {
                         name: userSnapshot['name'],
                         surname: userSnapshot['surname'],
                         phoneNumber: userSnapshot['phoneNumber'],
-                        isProfileEditing: true, // Set flag for editing
+                        isProfileEditing: true,
                       ),
                     ),
                   );
@@ -145,26 +148,43 @@ class _UserDashboardState extends State<UserDashboard> {
               },
             ),
             ListTile(
-              title: Text('Skill-Level'),
+              leading: Icon(
+                CupertinoIcons.person,
+                color: kAppBarColor,
+              ),
+              title: Text(
+                'Skill-Level',
+                style: TextStyle(
+                  color: CupertinoColors.black,
+                ),
+              ),
               onTap: () async {
                 String uid = FirebaseAuth.instance.currentUser!.uid;
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => UserSkillLevel(
-                      UserID: uid, // Pass the user ID to UserSkillLevel widget
+                      UserID: uid,
                     ),
                   ),
                 );
               },
             ),
             ListTile(
-              title: Text('Logout'),
+              leading: Icon(
+                Icons.login_rounded,
+                color: kAppBarColor,
+              ),
               onTap: () async {
-                // Perform logout action
                 await FirebaseAuth.instance.signOut();
                 Navigator.pushReplacementNamed(context, '/signin');
               },
+              title: Text(
+                'Logout',
+                style: TextStyle(
+                  color: CupertinoColors.black,
+                ),
+              ),
             ),
           ],
         ),
@@ -172,7 +192,7 @@ class _UserDashboardState extends State<UserDashboard> {
     );
   }
 
-  Future<String> _getUserDisplayName() async {
+  Future<String> getUserDisplayName() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
@@ -181,12 +201,9 @@ class _UserDashboardState extends State<UserDashboard> {
           .doc(user.uid)
           .get();
       if (snapshot.exists) {
-        // Check if the document contains the "name" field
         if (snapshot.data()!.containsKey('name')) {
-          // Return the value of the "name" field
           return snapshot.get('name');
         } else {
-          // Handle the case where the "name" field does not exist
           return "User";
         }
       }

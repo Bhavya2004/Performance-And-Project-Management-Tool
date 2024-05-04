@@ -49,7 +49,9 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
       length: 4,
       child: Scaffold(
         appBar: AppBar(
-          iconTheme: IconThemeData(color: CupertinoColors.white),
+          iconTheme: IconThemeData(
+            color: CupertinoColors.white,
+          ),
           backgroundColor: kAppBarColor,
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

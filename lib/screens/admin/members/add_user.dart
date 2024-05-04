@@ -1,10 +1,10 @@
 import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/components/button.dart';
+import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/components/textfield.dart';
 import 'package:ppmt/constants/color.dart';
 
@@ -176,30 +176,22 @@ class _AddUserState extends State<AddUser> {
           isDisabled: false,
         );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'User registered successfully. Check your email for the password.',
-            ),
-          ),
-        );
+        showSnackBar(
+            context: context,
+            message:
+                "User registered successfully. Check your email for the password.");
 
         Navigator.of(context).pop();
       } on FirebaseAuthException catch (e) {
         if (e.code == 'email-already-in-use') {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('The account already exists for that email'),
-            ),
-          );
+          showSnackBar(
+              context: context,
+              message: "The account already exists for that email");
         }
       } catch (e) {
-        print(e);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('An error occurred. Please try again later'),
-          ),
-        );
+        showSnackBar(
+            context: context,
+            message: "An error occurred. Please try again later");
       }
     }
   }
@@ -210,12 +202,9 @@ class _AddUserState extends State<AddUser> {
         await updateDetails();
         Navigator.of(context).pop();
       } catch (e) {
-        print(e);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('An error occurred. Please try again later'),
-          ),
-        );
+        showSnackBar(
+            context: context,
+            message: "An error occurred. Please try again later");
       }
     }
   }
@@ -226,9 +215,7 @@ class _AddUserState extends State<AddUser> {
     const _chars =
         'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final Random _random = Random.secure();
-
     final length = minLength + _random.nextInt(maxLength - minLength + 1);
-
     return Iterable.generate(
         length, (_) => _chars[_random.nextInt(_chars.length)]).join();
   }
@@ -237,10 +224,7 @@ class _AddUserState extends State<AddUser> {
       String email, String temporaryPassword) async {
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      print('Temporary password sent to $email');
-    } catch (e) {
-      print('Failed to send temporary password: $e');
-    }
+    } catch (e) {}
   }
 
   postDetailsToFirestore(

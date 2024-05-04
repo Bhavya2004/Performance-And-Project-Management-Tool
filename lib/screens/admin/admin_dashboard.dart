@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
+import 'package:ppmt/screens/admin/members/add_user.dart';
 
 class AdminDashboard extends StatefulWidget {
   AdminDashboard({Key? key});
@@ -47,7 +48,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
               builder: (context, AsyncSnapshot<String> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return DrawerHeader(
-                    child: CircularProgressIndicator(),
+                    child: Center(
+                      child: CupertinoActivityIndicator(
+                        color: kAppBarColor,
+                      ),
+                    ),
                   );
                 }
                 if (snapshot.hasError) {
@@ -108,8 +113,26 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   color: CupertinoColors.black,
                 ),
               ),
-              onTap: () {
-                Navigator.of(context).pushNamed('/profile');
+              onTap: () async {
+                String uid = FirebaseAuth.instance.currentUser!.uid;
+                DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(uid)
+                    .get();
+                if (userSnapshot.exists) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AddUser(
+                        email: userSnapshot['email'],
+                        name: userSnapshot['name'],
+                        surname: userSnapshot['surname'],
+                        phoneNumber: userSnapshot['phoneNumber'],
+                        isProfileEditing: true,
+                      ),
+                    ),
+                  );
+                }
               },
             ),
             ListTile(

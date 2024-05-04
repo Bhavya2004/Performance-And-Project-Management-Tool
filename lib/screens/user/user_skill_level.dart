@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/members/add_skill_level.dart';
 
 class UserSkillLevel extends StatefulWidget {
@@ -37,47 +39,88 @@ class _SkillLevelState extends State<UserSkillLevel> {
             .where((doc) => doc['isDisabled'] == true)
             .toList();
       });
-    } catch (e) {
-      print(e.toString());
-    }
+    } catch (e) {}
   }
 
-  ListTile buildTile(DocumentSnapshot document, bool isDisabled) {
+  Card buildTile(DocumentSnapshot document, bool isDisabled) {
     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
     var skill = data['skillName'] as String?;
     var level = data['levelName'] as String?;
 
-    return ListTile(
-      tileColor: isDisabled ? Colors.grey[400] : null,
-      title: Text(skill ?? 'Missing skill'),
-      subtitle: Text(level ?? 'Missing level'),
-      trailing: IconButton(
-        icon: isDisabled ? Icon(Icons.visibility_off) : Icon(Icons.delete),
-        onPressed: () async {
-          await FirebaseFirestore.instance
-              .collection('userSkillsLevels')
-              .doc(document.id)
-              .update({'isDisabled': !isDisabled});
-
-          fetchUserSkillsLevels();
-        },
-      ),
-      onTap: isDisabled
-          ? null
-          : () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AssignSkillLevel(
-                    userId: widget.UserID!,
-                    selectedSkill: skill,
-                    selectedLevel: level,
+    return Card(
+      child: ListTile(
+        tileColor: isDisabled ? Colors.grey[400] : null,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  skill ?? 'Missing skill',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold
                   ),
                 ),
-              ).then((value) {
-                fetchUserSkillsLevels();
-              });
-            },
+                Text(
+                  level ?? 'Missing level',
+                  style: TextStyle(
+                    fontWeight: FontWeight.normal,
+                    fontSize: 13
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                IconButton(
+                  icon: data['isDisabled']
+                      ? SizedBox()
+                      : Icon(
+                    CupertinoIcons.pencil,
+                    color: kEditColor,
+                  ),
+                  onPressed: data['isDisabled']
+                      ? null
+                      : () async {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AssignSkillLevel(
+                          userId: widget.UserID!,
+                          selectedSkill: skill,
+                          selectedLevel: level,
+                        ),
+                      ),
+                    ).then((value) {
+                      fetchUserSkillsLevels();
+                    });
+                  },
+                ),
+                IconButton(
+                  icon: isDisabled
+                      ? Icon(
+                    Icons.visibility_off,
+                    color: kDeleteColor,
+                  )
+                      : Icon(
+                    Icons.visibility,
+                    color: kAppBarColor,
+                  ),
+                  onPressed: () async {
+                    await FirebaseFirestore.instance
+                        .collection('userSkillsLevels')
+                        .doc(document.id)
+                        .update({'isDisabled': !isDisabled});
+
+                    fetchUserSkillsLevels();
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -85,20 +128,17 @@ class _SkillLevelState extends State<UserSkillLevel> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Skill - Level",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            SizedBox(
-              height: 4,
-            ),
-          ],
+        iconTheme: IconThemeData(
+          color: CupertinoColors.white,
+        ),
+        backgroundColor: kAppBarColor,
+        title: Text(
+          "Skill - Level",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: CupertinoColors.white,
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -124,7 +164,8 @@ class _SkillLevelState extends State<UserSkillLevel> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
+        isExtended: true,
         onPressed: () {
           Navigator.push(
             context,
@@ -137,8 +178,10 @@ class _SkillLevelState extends State<UserSkillLevel> {
             },
           );
         },
-        label: Text(
-          "Add Skill/Level",
+        backgroundColor: Colors.orange.shade700,
+        child: Icon(
+          Icons.add,
+          color: Colors.orange.shade100,
         ),
       ),
     );

@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/constants/color.dart';
-import 'package:ppmt/screens/admin/members/add_skill_level.dart';
 
 class SkillLevel extends StatefulWidget {
   final String? userID;
@@ -15,12 +14,11 @@ class SkillLevel extends StatefulWidget {
 }
 
 class _SkillLevelState extends State<SkillLevel> {
-  late List<DocumentSnapshot> _userSkillsLevels;
+  List<DocumentSnapshot> _userSkillsLevels = [];
 
   @override
   void initState() {
     super.initState();
-    _userSkillsLevels = [];
     if (widget.userID != null && widget.userID!.isNotEmpty) {
       fetchUserSkillsLevels();
     }
@@ -36,9 +34,36 @@ class _SkillLevelState extends State<SkillLevel> {
       setState(() {
         _userSkillsLevels = userSkillsLevelsSnapshot.docs;
       });
-    } catch (e) {
-      print(e.toString());
-    }
+    } catch (e) {}
+  }
+
+  Card buildTile(DocumentSnapshot document, bool isDisabled) {
+    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+    var skill = data['skillName'] as String?;
+    var level = data['levelName'] as String?;
+
+    return Card(
+      child: ListTile(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  skill ?? 'Missing skill',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  level ?? 'Missing level',
+                  style: TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -77,28 +102,17 @@ class _SkillLevelState extends State<SkillLevel> {
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: Column(
-          children: _userSkillsLevels.map((doc) {
-            var data = doc.data();
-            if (data == null || !(data is Map<String, dynamic>)) {
-              return ListTile(
-                title: Text('Invalid data format'),
-              );
-            }
-            var skill = data['skillName'] as String?;
-            var level = data['levelName'] as String?;
-            if (skill == null || level == null) {
-              return ListTile(
-                title: Text('Missing skill or level'),
-              );
-            }
-            return Card(
-              margin: EdgeInsets.all(10),
-              child: ListTile(
-                title: Text(skill),
-                subtitle: Text(level),
-              ),
-            );
-          }).toList(),
+          children: [
+            ListView.builder(
+              shrinkWrap: true,
+              scrollDirection: Axis.vertical,
+              itemCount: _userSkillsLevels.length,
+              itemBuilder: (context, index) {
+                return buildTile(
+                    _userSkillsLevels[index], true);
+              },
+            ),
+          ],
         ),
       ),
     );

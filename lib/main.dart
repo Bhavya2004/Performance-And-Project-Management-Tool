@@ -11,7 +11,7 @@ void main() async {
       routes: route,
       initialRoute: '/',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
+      theme: ThemeData( 
         useMaterial3: true,
         fontFamily: 'SF-Pro',
       ),

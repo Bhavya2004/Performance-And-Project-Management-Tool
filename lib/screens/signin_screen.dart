@@ -1,14 +1,13 @@
-import 'package:animate_do/animate_do.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/components/textfield.dart';
 import 'package:ppmt/constants/color.dart';
 
 class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
+  const SignInScreen({Key? key}) : super(key: key);
 
   @override
   _SignInScreenState createState() => _SignInScreenState();
@@ -16,11 +15,11 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final _formSignInKey = GlobalKey<FormState>();
-  bool rememberPassword = true;
+  final _formDialogKey = GlobalKey<FormState>();
 
   final emailController = TextEditingController();
+  final forgetEmailController = TextEditingController();
   final passwordController = TextEditingController();
-
   bool _isMounted = false;
 
   @override
@@ -33,8 +32,125 @@ class _SignInScreenState extends State<SignInScreen> {
   void dispose() {
     _isMounted = false;
     emailController.dispose();
+    forgetEmailController.dispose();
     passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> resetPassword(String email) async {
+    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+  }
+
+  Future<void> signUserIn() async {
+    if (!_formSignInKey.currentState!.validate() || !_isMounted) {
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+
+    try {
+      showSnackBar(context: context, message: "Signing in...");
+
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      final user = FirebaseAuth.instance.currentUser;
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .get();
+
+      if (docSnapshot.exists) {
+        final role = docSnapshot.get('role');
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          role == "admin" ? '/admin_dashboard' : '/user_dashboard',
+          (_) => false,
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'invalid-credential') {
+        showSnackBar(context: context, message: "Email/Password is invalid");
+      }
+    }
+  }
+
+  AlertDialog buildResetPasswordDialog() {
+    return AlertDialog(
+      backgroundColor: CupertinoColors.white,
+      title: Text(
+        'Forgot Password',
+        style: TextStyle(
+          fontFamily: "SF-Pro",
+          color: CupertinoColors.black,
+        ),
+      ),
+      content: Form(
+        key: _formDialogKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            textFormField(
+              controller: forgetEmailController,
+              obscureText: false,
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? "Email is required"
+                  : null,
+              keyboardType: TextInputType.text,
+              labelText: "Enter your email",
+            ),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            if (_formDialogKey.currentState!.validate()) {
+              resetPassword(forgetEmailController.text);
+              Navigator.of(context).pop();
+            }
+          },
+          child: Text(
+            "Submit",
+            style: TextStyle(
+              fontFamily: "SF-Pro",
+              color: CupertinoColors.black,
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget buildLoginButton() {
+    return Container(
+      padding: EdgeInsets.only(top: 3, left: 3),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(50),
+        border: Border.all(color: Colors.black),
+      ),
+      child: MaterialButton(
+        minWidth: double.infinity,
+        height: 60,
+        onPressed: signUserIn,
+        color: kButtonColor,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(50),
+        ),
+        child: Text(
+          "Login",
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -60,198 +176,86 @@ class _SignInScreenState extends State<SignInScreen> {
                   children: <Widget>[
                     Column(
                       children: <Widget>[
-                        FadeInUp(
-                            duration: Duration(
-                              milliseconds: 1000,
-                            ),
-                            child: Text(
-                              "Login",
-                              style: TextStyle(
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        FadeInUp(
-                          duration: Duration(
-                            milliseconds: 1200,
+                        Text(
+                          "Login",
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
                           ),
-                          child: Text(
-                            "Login to your account",
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey[700],
-                            ),
+                        ),
+                        SizedBox(height: 20),
+                        Text(
+                          "Login to your account",
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey[700],
                           ),
                         ),
                       ],
                     ),
                     Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 40,
-                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 40),
                       child: Column(
                         children: <Widget>[
-                          FadeInUp(
-                            duration: Duration(
-                              milliseconds: 1200,
-                            ),
-                            child: textFormField(
-                              labelText: "Email",
-                              controller: emailController,
-                              obscureText: false,
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return "Email is required";
-                                }
-                                return null;
-                              },
-                              keyboardType: TextInputType.text,
-                            ),
+                          textFormField(
+                            labelText: "Email",
+                            controller: emailController,
+                            obscureText: false,
+                            validator: (value) =>
+                                value == null || value.trim().isEmpty
+                                    ? "Email is required"
+                                    : null,
+                            keyboardType: TextInputType.text,
                           ),
-                          FadeInUp(
-                            duration: Duration(
-                              milliseconds: 1300,
-                            ),
-                            child: textFormField(
-                              controller: passwordController,
-                              obscureText: true,
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return "Password is required";
-                                }
-                                return null;
-                              },
-                              keyboardType: TextInputType.text,
-                              labelText: 'Password',
+                          textFormField(
+                            controller: passwordController,
+                            obscureText: true,
+                            validator: (value) =>
+                                value == null || value.trim().isEmpty
+                                    ? "Password is required"
+                                    : null,
+                            keyboardType: TextInputType.text,
+                            labelText: 'Password',
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) =>
+                                    buildResetPasswordDialog(),
+                              );
+                            },
+                            child: Text(
+                              "Forgot Password",
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.grey[700],
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    FadeInUp(
-                      duration: Duration(milliseconds: 1400),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 40),
-                        child: Container(
-                          padding: EdgeInsets.only(top: 3, left: 3),
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(50),
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Colors.black,
-                                ),
-                                top: BorderSide(
-                                  color: Colors.black,
-                                ),
-                                left: BorderSide(
-                                  color: Colors.black,
-                                ),
-                                right: BorderSide(
-                                  color: Colors.black,
-                                ),
-                              )),
-                          child: MaterialButton(
-                            minWidth: double.infinity,
-                            height: 60,
-                            onPressed: signUserIn,
-                            color: kButtonColor,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                50,
-                              ),
-                            ),
-                            child: Text(
-                              "Login",
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 40),
+                      child: buildLoginButton(),
                     ),
                   ],
                 ),
               ),
-              FadeInUp(
-                  duration: Duration(milliseconds: 1200),
-                  child: Container(
-                    height: MediaQuery.of(context).size.height / 3,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage(
-                          'assets/login.png',
-                        ),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ))
+              Container(
+                height: MediaQuery.of(context).size.height / 3,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('assets/login.png'),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Future<void> signUserIn() async {
-    if (!_formSignInKey.currentState!.validate()) {
-      return;
-    }
-
-    if (!_isMounted) {
-      return;
-    }
-
-    FocusScope.of(context).unfocus();
-
-    try {
-      showSnackBar(context: context, message: "Signin in... ");
-
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
-      );
-
-      if (!_isMounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-      User? user = FirebaseAuth.instance.currentUser;
-      FirebaseFirestore.instance
-          .collection('users')
-          .doc(user!.uid)
-          .get()
-          .then((DocumentSnapshot documentSnapshot) {
-        if (documentSnapshot.exists) {
-          if (documentSnapshot.get('role') == "admin") {
-            Navigator.pushNamedAndRemoveUntil(
-              context,
-              '/admin_dashboard',
-                  (_) => false,
-            );
-          } else {
-            Navigator.pushNamedAndRemoveUntil(
-              context,
-              '/user_dashboard',
-                  (_) => false,
-            );
-          }
-        } else {}
-      });
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'invalid-credential') {
-        showSnackBar(context: context, message: "Email/Password is invalid");
-      }
-      if (!_isMounted) {
-        return;
-      }
-    }
   }
 }

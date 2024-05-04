@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/constants/color.dart';
-import 'package:ppmt/screens/admin/master/task/subtask/add_subtask.dart';
 import 'package:ppmt/screens/admin/master/task/task_status/add_task_status.dart';
 
 class TaskStatusList extends StatefulWidget {
@@ -46,8 +45,15 @@ class _TaskStatusListState extends State<TaskStatusList> {
               itemCount: taskStatuses.length,
               itemBuilder: (context, index) {
                 final taskStatus = taskStatuses[index];
-                print(taskStatus.data());
+                final colorString = taskStatus['taskStatusColor'] as String?;
+                final color = colorString != null
+                    ? Color(int.parse(colorString, radix: 16))
+                    : Colors.transparent;
+                final statusTypeID = taskStatus['taskStatusName'] as String?;
+                final isEditable = statusTypeID != 'To Do' && statusTypeID != 'Done';
+                final textColor = color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
                 return Card(
+                  color: color,
                   margin: EdgeInsets.all(10),
                   child: ListTile(
                     title: Row(
@@ -58,9 +64,10 @@ class _TaskStatusListState extends State<TaskStatusList> {
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
+                            color: textColor
                           ),
                         ),
-                        IconButton(
+                        isEditable ? IconButton(
                           icon: Icon(
                             CupertinoIcons.pencil,
                             color: kEditColor,
@@ -73,12 +80,13 @@ class _TaskStatusListState extends State<TaskStatusList> {
                                   taskId: widget.taskId,
                                   taskStatusID: taskStatus["taskStatusID"],
                                   taskStatusName: taskStatus["taskStatusName"],
+                                  taskStatusColor: taskStatus["taskStatusColor"],
                                   isEditMode: true,
                                 ),
                               ),
                             );
                           },
-                        ),
+                        ) : SizedBox(), // If not editable, show an empty SizedBox instead of the edit icon
                       ],
                     ),
                   ),

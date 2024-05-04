@@ -37,9 +37,14 @@ class _AddTaskStatusState extends State<AddTaskStatus> {
     super.initState();
     taskStatusController =
         TextEditingController(text: widget.taskStatusName ?? '');
-    if (widget.taskStatusColor != null) {
-      currentColor = Color(int.parse(widget.taskStatusColor!, radix: 16));
-    }
+    currentColor = widget.taskStatusColor != null
+        ? Color(
+            int.parse(
+              widget.taskStatusColor!,
+              radix: 16,
+            ),
+          )
+        : Colors.green;
   }
 
   @override
@@ -160,7 +165,7 @@ class _AddTaskStatusState extends State<AddTaskStatus> {
 
       if (snapshot.docs.isNotEmpty) {
         String? taskStatusIDString =
-        snapshot.docs.first['taskStatusID'] as String?;
+            snapshot.docs.first['taskStatusID'] as String?;
         if (taskStatusIDString != null &&
             int.tryParse(taskStatusIDString) != null) {
           return int.parse(taskStatusIDString);

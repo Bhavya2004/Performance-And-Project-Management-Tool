@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/snackbar.dart';
+import 'package:ppmt/constants/color.dart';
 
 class AssignSkillLevel extends StatefulWidget {
   final String userId;
@@ -34,7 +36,6 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
   }
 
   void fetchSkillsAndLevels() async {
-    // Fetch skills
     QuerySnapshot skillsSnapshot = await _firestore
         .collection('skills')
         .where('isDisabled', isEqualTo: false)
@@ -44,7 +45,6 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
         .toList()
         .cast<String>();
 
-    // Fetch levels
     QuerySnapshot levelsSnapshot = await _firestore
         .collection('levels')
         .where('isDisabled', isEqualTo: false)
@@ -67,46 +67,32 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
           .where('levelName', isEqualTo: _selectedLevel)
           .get();
 
-      // Log query parameters and results
-      print('userId: ${widget.userId}');
-      print('_selectedSkill: $_selectedSkill');
-      print('_selectedLevel: $_selectedLevel');
-      print('existingRecords.docs.length: ${existingRecords.docs.length}');
-
-      // If any existing records are found, show an error message
       if (existingRecords.docs.isNotEmpty) {
         showSnackBar(
           message: 'Skill and level combination already exists for this user',
           context: context,
         );
       } else {
-        // If the combination doesn't exist, check if it's an update or add operation
-        // Check if the user already has this skill and level combination
         QuerySnapshot userSkillLevel = await _firestore
             .collection('userSkillsLevels')
             .where('userId', isEqualTo: widget.userId)
             .where('skillName', isEqualTo: _selectedSkill)
             .get();
 
-        // Log query parameters and results
-        print('userSkillLevel.docs.length: ${userSkillLevel.docs.length}');
-
-        // If the user already has this skill and level combination, update it
         if (userSkillLevel.docs.isNotEmpty) {
-          // Get the document ID of the first matching record
           String documentId = userSkillLevel.docs.first.id;
           try {
-            // Update the specific record using its document ID
-            await _firestore.collection('userSkillsLevels').doc(documentId).update({
+            await _firestore
+                .collection('userSkillsLevels')
+                .doc(documentId)
+                .update({
               'levelName': _selectedLevel,
             });
             print('Record updated successfully');
           } catch (e) {
             print('Error updating record: $e');
           }
-        }
-        else {
-          // If the user doesn't have this skill and level combination, add it
+        } else {
           print('Adding new record');
           await _firestore.collection('userSkillsLevels').add({
             'userId': widget.userId,
@@ -116,9 +102,7 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
           });
         }
 
-        Navigator.pop(context); // Navigate back to the Users screen
-
-        // Show a snackbar
+        Navigator.pop(context);
         showSnackBar(
           message: 'Skill and level assigned successfully',
           context: context,
@@ -131,7 +115,18 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Assign Skill and Level'),
+        iconTheme: IconThemeData(
+          color: CupertinoColors.white,
+        ),
+        backgroundColor: kAppBarColor,
+        title: Text(
+          'Assign Skill and Level',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: CupertinoColors.white,
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -140,6 +135,7 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
             Container(
               margin: EdgeInsets.all(10),
               child: DropdownButtonFormField(
+                style: TextStyle(color: kAppBarColor),
                 items: _skills.map((skill) {
                   return DropdownMenuItem(
                     value: skill,
@@ -154,26 +150,44 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
                 value: _selectedSkill,
                 decoration: InputDecoration(
                   labelText: 'Skill',
+                  labelStyle: TextStyle(
+                    color: kAppBarColor,
+                  ),
                 ),
               ),
             ),
-            ..._levels.map((level) {
-              return RadioListTile(
-                title: Text(level),
-                value: level,
-                groupValue: _selectedLevel,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedLevel = value as String?;
-                  });
-                },
-              );
-            }).toList(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Select Level",
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                  ..._levels.map((level) {
+                    return RadioListTile(
+                      activeColor: kAppBarColor,
+                      title: Text(level),
+                      value: level,
+                      groupValue: _selectedLevel,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedLevel = value;
+                        });
+                      },
+                    );
+                  }).toList(),
+                ],
+              ),
+            ),
             button(
               onPressed: _selectedSkill != null && _selectedLevel != null
                   ? assignSkillAndLevel
                   : null,
               buttonName: 'Assign Skill and Level',
+              backgroundColor: CupertinoColors.black,
+              textColor: CupertinoColors.white,
             ),
           ],
         ),

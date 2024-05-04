@@ -121,14 +121,14 @@ class _AddTaskState extends State<AddTask> {
       await statusRef.add({
         'taskID': newTaskID.toString(),
         'taskStatusName': "To Do",
-        "taskStatusColor": "",
+        "taskStatusColor": "ff8c8c8c",
         'taskStatusID': "1"
       });
 
       await statusRef.add({
         'taskID': newTaskID.toString(),
         'taskStatusName': "Done",
-        "taskStatusColor": "",
+        "taskStatusColor": "ff8bc34a",
         'taskStatusID': "2"
       });
     } catch (e) {

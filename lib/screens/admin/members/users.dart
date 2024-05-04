@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -18,11 +19,11 @@ class _UsersState extends State<Users> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(
+        iconTheme: const IconThemeData(
           color: CupertinoColors.white,
         ),
         backgroundColor: kAppBarColor,
-        title: Text(
+        title: const Text(
           'Users',
           style: TextStyle(
             fontSize: 20,
@@ -46,121 +47,130 @@ class _UsersState extends State<Users> {
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
-              child: CircularProgressIndicator(),
+              child: CupertinoActivityIndicator(
+                color: kAppBarColor,
+              ),
             );
           }
 
           final activeItems = <QueryDocumentSnapshot>[];
           final disabledItems = <QueryDocumentSnapshot>[];
 
-          snapshot.data!.docs.forEach((doc) {
+          for (var doc in snapshot.data!.docs) {
             final data = doc.data() as Map<String, dynamic>;
             if (data['isDisabled'] == true) {
               disabledItems.add(doc);
             } else {
               activeItems.add(doc);
             }
-          });
+          }
 
           return ListView(
             children: [
-              ..._buildUserList(activeItems),
-              ..._buildDisabledUserList(disabledItems),
+              ..._buildUserList(activeItems, false),
+              ..._buildUserList(disabledItems, true),
             ],
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
+        isExtended: true,
         onPressed: () {
           Navigator.of(context).pushNamed('/add_user');
         },
-        icon: Icon(
+        backgroundColor: Colors.orange.shade700,
+        child: Icon(
           Icons.add,
-          color: CupertinoColors.black,
-        ),
-        label: Text(
-          "Add Member",
-          style: TextStyle(
-            color: CupertinoColors.black,
-          ),
+          color: Colors.orange.shade100,
         ),
       ),
     );
   }
 
-  List<Widget> _buildUserList(List<QueryDocumentSnapshot> items) {
+  List<Widget> _buildUserList(
+      List<QueryDocumentSnapshot> items, bool isDisabled) {
     return items.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      return _buildUserListItem(doc, data);
+      final data = _getUserData(doc);
+      return _buildUserListItem(doc, data, isDisabled);
     }).toList();
   }
 
-  List<Widget> _buildDisabledUserList(List<QueryDocumentSnapshot> items) {
-    return items.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      return _buildDisabledUserListItem(doc, data);
-    }).toList();
+  Map<String, dynamic> _getUserData(QueryDocumentSnapshot document) {
+    return document.data() as Map<String, dynamic>;
   }
 
-  Widget _buildUserListItem(
-      QueryDocumentSnapshot document, Map<String, dynamic> data) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SkillLevel(
-              userID: document.id,
-              userName: data['name'],
+  Widget _buildUserListItem(QueryDocumentSnapshot document,
+      Map<String, dynamic> data, bool isDisabled) {
+    final userName = data['name'] as String;
+    final firstCharacter = userName.isNotEmpty ? userName[0].toUpperCase() : '';
+
+    final random = Random();
+    final randomColor = Color.fromARGB(
+      255,
+      random.nextInt(256),
+      random.nextInt(256),
+      random.nextInt(256),
+    );
+
+    final textColor =
+        randomColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+
+    return Card(
+      margin: const EdgeInsets.all(5),
+      color: isDisabled ? Colors.grey[400] : null,
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: randomColor,
+          child: Text(
+            firstCharacter,
+            style: TextStyle(
+              color: textColor,
             ),
           ),
-        );
-      },
-      child: Card(
-        margin: EdgeInsets.all(5),
-        child: ListTile(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                data['name'],
-                style: TextStyle(
-                  fontSize: 15,
-                ),
-              ),
-              IconButton(
-                icon: Icon(Icons.visibility),
-                onPressed: () async {
-                  await _updateUserStatus(document.id, true);
-                },
-              ),
-            ],
-          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDisabledUserListItem(
-      QueryDocumentSnapshot document, Map<String, dynamic> data) {
-    return Card(
-      margin: EdgeInsets.all(5),
-      color: Colors.grey[400],
-      child: ListTile(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              data['name'],
-              style: TextStyle(
+              userName,
+              style: const TextStyle(
                 fontSize: 15,
               ),
             ),
-            IconButton(
-              icon: Icon(Icons.visibility_off),
-              onPressed: () async {
-                await _updateUserStatus(document.id, false);
-              },
+            Row(
+              children: [
+                IconButton(
+                  icon: isDisabled
+                      ? Icon(
+                          Icons.visibility_off,
+                          color: kDeleteColor,
+                        )
+                      : Icon(
+                          Icons.visibility,
+                          color: kAppBarColor,
+                        ),
+                  onPressed: () async {
+                    await _updateUserStatus(document.id, !isDisabled);
+                  },
+                ),
+                IconButton(
+                  icon: Icon(
+                    CupertinoIcons.info_circle_fill,
+                    color: kAppBarColor,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SkillLevel(
+                          userID: document.id,
+                          userName: userName,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -174,8 +184,6 @@ class _UsersState extends State<Users> {
           .collection('users')
           .doc(userId)
           .update({'isDisabled': status});
-    } catch (e) {
-      print('Error updating user status: $e');
-    }
+    } catch (e) {}
   }
 }
