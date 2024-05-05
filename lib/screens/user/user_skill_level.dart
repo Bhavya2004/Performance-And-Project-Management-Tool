@@ -58,16 +58,11 @@ class _SkillLevelState extends State<UserSkillLevel> {
               children: [
                 Text(
                   skill ?? 'Missing skill',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
                   level ?? 'Missing level',
-                  style: TextStyle(
-                    fontWeight: FontWeight.normal,
-                    fontSize: 13
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
                 ),
               ],
             ),
@@ -77,42 +72,41 @@ class _SkillLevelState extends State<UserSkillLevel> {
                   icon: data['isDisabled']
                       ? SizedBox()
                       : Icon(
-                    CupertinoIcons.pencil,
-                    color: kEditColor,
-                  ),
+                          CupertinoIcons.pencil,
+                          color: kEditColor,
+                        ),
                   onPressed: data['isDisabled']
                       ? null
                       : () async {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AssignSkillLevel(
-                          userId: widget.UserID!,
-                          selectedSkill: skill,
-                          selectedLevel: level,
-                        ),
-                      ),
-                    ).then((value) {
-                      fetchUserSkillsLevels();
-                    });
-                  },
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AssignSkillLevel(
+                                userId: widget.UserID!,
+                                selectedSkill: skill,
+                                selectedLevel: level,
+                              ),
+                            ),
+                          ).then((value) {
+                            fetchUserSkillsLevels();
+                          });
+                        },
                 ),
                 IconButton(
                   icon: isDisabled
                       ? Icon(
-                    Icons.visibility_off,
-                    color: kDeleteColor,
-                  )
+                          Icons.visibility_off,
+                          color: kDeleteColor,
+                        )
                       : Icon(
-                    Icons.visibility,
-                    color: kAppBarColor,
-                  ),
+                          Icons.visibility,
+                          color: kAppBarColor,
+                        ),
                   onPressed: () async {
                     await FirebaseFirestore.instance
                         .collection('userSkillsLevels')
                         .doc(document.id)
                         .update({'isDisabled': !isDisabled});
-
                     fetchUserSkillsLevels();
                   },
                 ),

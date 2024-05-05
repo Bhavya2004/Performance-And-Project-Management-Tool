@@ -190,6 +190,7 @@ class _AddTaskStatusState extends State<AddTaskStatus> {
         'taskStatusName': taskStatusName,
         'taskID': widget.taskId,
         'taskStatusColor': currentColor.value.toRadixString(16),
+        'isDisabled': false,
       });
     } catch (e) {
       throw ('Error adding TaskStatus: $e');

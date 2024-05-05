@@ -122,14 +122,16 @@ class _AddTaskState extends State<AddTask> {
         'taskID': newTaskID.toString(),
         'taskStatusName': "To Do",
         "taskStatusColor": "ff8c8c8c",
-        'taskStatusID': "1"
+        'taskStatusID': "1",
+        'isDisabled': false,
       });
 
       await statusRef.add({
         'taskID': newTaskID.toString(),
         'taskStatusName': "Done",
         "taskStatusColor": "ff8bc34a",
-        'taskStatusID': "2"
+        'taskStatusID': "2",
+        'isDisabled': false,
       });
     } catch (e) {
       throw ('Error adding level: $e');

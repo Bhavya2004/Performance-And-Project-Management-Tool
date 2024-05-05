@@ -118,6 +118,7 @@ class _AddSubTaskState extends State<AddSubTask> {
         'subTaskID': newSubTaskID.toString(),
         'subTaskName': subTaskName,
         'taskId': widget.taskId,
+        'isDisabled': false,
       });
     } catch (e) {
       throw ('Error adding subtask: $e');
