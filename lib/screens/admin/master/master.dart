@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/master/complexity/complexity_list.dart';
+import 'package:ppmt/screens/admin/master/days/days_list.dart';
 import 'package:ppmt/screens/admin/master/level/level_list.dart';
 import 'package:ppmt/screens/admin/master/skill/skill_list.dart';
 import 'package:ppmt/screens/admin/master/task/task_list.dart';
@@ -17,14 +18,20 @@ class Master extends StatefulWidget {
 class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
   late TabController _tabController;
-  final List<String> tabTitles = ['Levels', 'Skills', 'Complexity', 'Task'];
+  final List<String> tabTitles = [
+    'Levels',
+    'Skills',
+    'Complexity',
+    'Task',
+    "Days Calculation"
+  ];
   String currentTabTitle = '';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 4,
+      length: 5,
       vsync: this,
     );
     _tabController.addListener(_handleTabSelection);
@@ -46,7 +53,7 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           iconTheme: IconThemeData(
@@ -117,6 +124,14 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
                   color: kButtonColor,
                 ),
               ),
+              Tab(
+                icon: Image.asset(
+                  'assets/icons/days.png',
+                  width: 25,
+                  height: 25,
+                  color: kButtonColor,
+                ),
+              ),
             ],
           ),
         ),
@@ -127,6 +142,7 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
             SkillListPage(),
             ComplexityListPage(),
             TaskList(),
+            DaysList()
           ],
         ),
         floatingActionButton: FloatingActionButton(
@@ -144,6 +160,9 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
                 break;
               case 3:
                 Navigator.of(context).pushNamed('/add_task');
+                break;
+              case 4:
+                Navigator.of(context).pushNamed('/add_days');
                 break;
             }
           },

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ppmt/auth_page.dart';
 import 'package:ppmt/screens/admin/master/complexity/add_complexity.dart';
 import 'package:ppmt/screens/admin/master/complexity/complexity_list.dart';
+import 'package:ppmt/screens/admin/master/days/add_days.dart';
+import 'package:ppmt/screens/admin/master/days/days_list.dart';
 import 'package:ppmt/screens/admin/master/level/add_level.dart';
 import 'package:ppmt/screens/admin/master/master.dart';
 import 'package:ppmt/screens/admin/master/skill/add_skill.dart';
@@ -23,29 +25,29 @@ import 'package:ppmt/screens/admin/members/users.dart';
 import 'package:ppmt/screens/user/user_skill_level.dart';
 
 Map<String, Widget Function(BuildContext)> route = {
-  '/': (context) => const Splash(),
-  '/auth': (context) => const AuthPage(),
-  '/signin': (context) => const SignInScreen(),
+  '/': (context) => Splash(),
+  '/auth': (context) => AuthPage(),
+  '/signin': (context) => SignInScreen(),
   '/admin_dashboard': (context) => AdminDashboard(),
   '/user_dashboard': (context) => UserDashboard(),
-  "/add_user": (context) => const AddUser(
+  "/add_user": (context) => AddUser(
         name: "",
         surname: "",
         phoneNumber: "",
         email: "",
       ),
-  "/message": (context) => const Message(),
-  "/profile": (context) => const Account(),
-  "/master": (context) => const Master(),
-  "/projects": (context) => const Projects(),
-  "/user_list": (context) => const Users(),
+  "/message": (context) => Message(),
+  "/profile": (context) => Account(),
+  "/master": (context) => Master(),
+  "/projects": (context) => Projects(),
+  "/user_list": (context) => Users(),
   "/level_list": (context) => LevelListPage(),
-  "/add_level": (context) => const AddLevel(
+  "/add_level": (context) => AddLevel(
         levelID: "",
         levelName: "",
       ),
   "/skill_list": (context) => SkillListPage(),
-  "/add_skill": (context) => const AddSkill(skillName: "", skillID: ""),
+  "/add_skill": (context) => AddSkill(skillName: "", skillID: ""),
   '/add_skill_level': (context) => AssignSkillLevel(
         userId: "",
       ),
@@ -56,8 +58,10 @@ Map<String, Widget Function(BuildContext)> route = {
   '/user_skill_level': (context) => UserSkillLevel(
         UserID: "",
       ),
-  "/add_complexity": (context) => const AddComplexity(),
+  "/add_complexity": (context) => AddComplexity(),
   '/complexity_list': (context) => ComplexityListPage(),
-  "/add_task": (context) => const AddTask(),
-  '/task_list': (context) => const TaskList(),
+  "/add_task": (context) => AddTask(),
+  '/task_list': (context) => TaskList(),
+  "/add_days": (context) => AddDays(),
+  '/days_list': (context) => DaysList(),
 };
