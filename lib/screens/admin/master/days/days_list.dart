@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class DaysList extends StatefulWidget{
+class DaysList extends StatefulWidget {
   const DaysList({super.key});
 
   @override

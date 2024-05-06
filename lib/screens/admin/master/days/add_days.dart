@@ -27,6 +27,7 @@ class _AddDaysState extends State<AddDays> {
     fetchLevels();
     fetchSkills();
   }
+
   void fetchSkills() async {
     QuerySnapshot skillsSnapshot = await firebaseFirestore
         .collection('skills')
@@ -76,6 +77,43 @@ class _AddDaysState extends State<AddDays> {
     }
   }
 
+  void addDaysToDatabase() async {
+    if (selectedSkill == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please select a skill first!'),
+        ),
+      );
+      return;
+    }
+    for (int i = 0; i < levelsList.length; i++) {
+      for (int j = 0; j < complexityList.length; j++) {
+        String days = controllersList[i][j].text;
+        await firebaseFirestore.collection('days').add({
+          'skill_id': selectedSkill,
+          'level_id': levelsList[i]['levelID'],
+          'complexity_name': complexityList[j]['complexityName'],
+          'days': days,
+        });
+      }
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Days added successfully!'),
+      ),
+    );
+    Navigator.pop(context);
+  }
+
+  void resetControllers() {
+    for (List<TextEditingController> controllers in controllersList) {
+      for (TextEditingController controller in controllers) {
+        controller.text = '0';
+      }
+    }
+  }
+
   @override
   void dispose() {
     for (List<TextEditingController> controllers in controllersList) {
@@ -119,6 +157,7 @@ class _AddDaysState extends State<AddDays> {
                 onChanged: (value) {
                   setState(() {
                     selectedSkill = value as String?;
+                    resetControllers();
                   });
                 },
                 value: selectedSkill,
@@ -188,6 +227,7 @@ class _AddDaysState extends State<AddDays> {
                 textColor: CupertinoColors.white,
                 backgroundColor: CupertinoColors.black,
                 buttonName: "Add Days",
+                onPressed: addDaysToDatabase,
               ),
             )
           ],
