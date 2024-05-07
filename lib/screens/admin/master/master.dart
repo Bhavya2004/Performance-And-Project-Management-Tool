@@ -21,8 +21,8 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
   final List<String> tabTitles = [
     'Levels',
     'Skills',
-    'Complexity',
-    'Task',
+    'Complexity / Severity',
+    'Task Type',
     "Days Calculation"
   ];
   String currentTabTitle = '';
@@ -76,6 +76,7 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
                 style: TextStyle(
                   fontSize: 15,
                   color: kButtonColor,
+                  fontWeight: FontWeight.bold
                 ),
               ),
             ],
@@ -95,40 +96,40 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
               Tab(
                 icon: Image.asset(
                   'assets/icons/levels.png',
-                  width: 25,
-                  height: 25,
+                  width: 30,
+                  height: 30,
                   color: kButtonColor,
                 ),
               ),
               Tab(
                 icon: Image.asset(
                   'assets/icons/skills.png',
-                  width: 25,
-                  height: 25,
+                  width: 30,
+                  height: 30,
                   color: kButtonColor,
                 ),
               ),
               Tab(
                 icon: Image.asset(
                   'assets/icons/complexity.png',
-                  width: 25,
-                  height: 25,
+                  width: 30,
+                  height: 30,
                   color: kButtonColor,
                 ),
               ),
               Tab(
                 icon: Image.asset(
                   'assets/icons/tasks.png',
-                  width: 25,
-                  height: 25,
+                  width: 30,
+                  height: 30,
                   color: kButtonColor,
                 ),
               ),
               Tab(
                 icon: Image.asset(
                   'assets/icons/days.png',
-                  width: 25,
-                  height: 25,
+                  width: 30,
+                  height: 30,
                   color: kButtonColor,
                 ),
               ),

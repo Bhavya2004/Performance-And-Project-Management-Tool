@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/components/button.dart';
+import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/constants/color.dart';
 
 class AddDays extends StatefulWidget {
@@ -20,7 +21,6 @@ class _AddDaysState extends State<AddDays> {
   List<List<TextEditingController>> controllersList = [];
   List<String> skills = [];
   String? selectedSkill;
-
 
   @override
   void initState() {
@@ -62,7 +62,6 @@ class _AddDaysState extends State<AddDays> {
 
     setState(() {});
   }
-
 
   void fetchLevels() async {
     QuerySnapshot levelsSnapshot = await _firestore.collection('levels').get();
@@ -111,10 +110,20 @@ class _AddDaysState extends State<AddDays> {
 
   void addOrUpdateDays() async {
     if (selectedSkill == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please select a skill first!'),
-        ),
+      showSnackBar(context: context, message: "Please select a skill first!");
+      return;
+    }
+
+    // Check if the selected skill already exists in the database
+    QuerySnapshot skillSnapshot = await _firestore
+        .collection('days')
+        .where('skillName', isEqualTo: selectedSkill)
+        .get();
+
+    if (widget.document == null && skillSnapshot.docs.isNotEmpty) {
+      showSnackBar(
+        context: context,
+        message: "Skill '$selectedSkill' already exists!",
       );
       return;
     }
@@ -133,21 +142,23 @@ class _AddDaysState extends State<AddDays> {
     }
 
     if (widget.document != null) {
-      // Update existing document
       await _firestore.collection('days').doc(widget.document!.id).update({
         'skillName': selectedSkill,
         'days': daysData,
       });
+      showSnackBar(context: context, message: "Days Calculation Updated Successfully");
     } else {
-      // Add new document
       await _firestore.collection('days').add({
         'skillName': selectedSkill,
         'days': daysData,
       });
+      showSnackBar(context: context, message: "Days Calculation Added Successfully");
     }
 
     Navigator.pop(context);
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -203,13 +214,18 @@ class _AddDaysState extends State<AddDays> {
                 TableRow(
                   children: [
                     TableCell(
-                      child: Center(child: Text('Levels')),
+                      child: Center(),
                     ),
                     for (var complexity in complexityList)
                       TableCell(
                         child: Center(
-                            child:
-                                Text(complexity['complexityName'] as String)),
+                          child: Text(
+                            complexity['complexityName'] as String,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
                   ],
                 ),
@@ -219,7 +235,12 @@ class _AddDaysState extends State<AddDays> {
                       TableCell(
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text(levelsList[i]['levelName'] as String),
+                          child: Text(
+                            levelsList[i]['levelName'] as String,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                       for (int j = 0; j < complexityList.length; j++)

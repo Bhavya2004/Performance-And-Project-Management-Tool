@@ -154,7 +154,6 @@ class _AddLevelState extends State<AddLevel> {
           levelData['levelName'] = levelController.text;
           levelData['isDisabled'] = false;
           await levelSnapshot.reference.update(levelData);
-          print('Level updated successfully');
         } else {
           throw ('Document data is null or empty');
         }

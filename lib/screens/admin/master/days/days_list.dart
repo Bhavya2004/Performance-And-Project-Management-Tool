@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/constants/color.dart';
@@ -27,7 +28,9 @@ class _DaysListState extends State<DaysList> {
 
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
-              child: CircularProgressIndicator(color: kAppBarColor),
+              child: CupertinoActivityIndicator(
+                color: kAppBarColor,
+              ),
             );
           }
 
@@ -40,19 +43,39 @@ class _DaysListState extends State<DaysList> {
               var complexityNames = daysData.entries.first.value.keys.toList();
 
               List<DataColumn> columns = [
-                DataColumn(label: Text('Levels')),
+                DataColumn(
+                  label: Text(
+                    'Levels',
+                  ),
+                ),
                 for (var complexityName in complexityNames)
-                  DataColumn(label: Text(complexityName)),
+                  DataColumn(
+                    label: Text(
+                      complexityName,
+                    ),
+                  ),
               ];
 
               List<DataRow> rows = [];
               for (var entry in daysData.entries) {
                 List<DataCell> cells = [
-                  DataCell(Text(entry.key)),
+                  DataCell(
+                    Text(
+                      entry.key,
+                    ),
+                  ),
                   for (var subEntry in entry.value.entries)
-                    DataCell(Text('${subEntry.value}')),
+                    DataCell(
+                      Text(
+                        '${subEntry.value}',
+                      ),
+                    ),
                 ];
-                rows.add(DataRow(cells: cells));
+                rows.add(
+                  DataRow(
+                    cells: cells,
+                  ),
+                );
               }
 
               return ExpansionTile(
@@ -77,6 +100,7 @@ class _DaysListState extends State<DaysList> {
                       },
                       child: DataTable(
                         sortAscending: true,
+                        columnSpacing: 30,
                         border: TableBorder.all(),
                         columns: columns,
                         rows: rows,
