@@ -60,7 +60,16 @@ class _AddDaysState extends State<AddDays> {
         .toList()
         .cast<String>();
 
-    setState(() {});
+    setState(() {
+      if (!skills.contains(selectedSkill)) {
+        // If the selected skill is disabled, reset it
+        selectedSkill = null;
+        showSnackBar(
+          context: context,
+          message: "The selected skill has been disabled. Unable to edit.",
+        );
+      }
+    });
   }
 
   void fetchLevels() async {
@@ -114,51 +123,43 @@ class _AddDaysState extends State<AddDays> {
       return;
     }
 
-    // Check if the selected skill already exists in the database
-    QuerySnapshot skillSnapshot = await _firestore
-        .collection('days')
+    // Check if the selected skill is disabled
+    QuerySnapshot disabledSkillSnapshot = await _firestore
+        .collection('skills')
         .where('skillName', isEqualTo: selectedSkill)
+        .where('isDisabled', isEqualTo: true)
         .get();
 
-    if (widget.document == null && skillSnapshot.docs.isNotEmpty) {
+    if (disabledSkillSnapshot.docs.isNotEmpty) {
       showSnackBar(
         context: context,
-        message: "Skill '$selectedSkill' already exists!",
+        message: "The selected skill has been disabled. Unable to edit.",
       );
       return;
     }
 
-    Map<String, dynamic> daysData = {};
-
-    for (int i = 0; i < levelsList.length; i++) {
-      Map<String, dynamic> levelData = {};
-
-      for (int j = 0; j < complexityList.length; j++) {
-        int days = int.tryParse(controllersList[i][j].text) ?? 0;
-        levelData[complexityList[j]['complexityName'] as String] = days;
-      }
-
-      daysData[levelsList[i]['levelName'] as String] = levelData;
-    }
-
-    if (widget.document != null) {
-      await _firestore.collection('days').doc(widget.document!.id).update({
-        'skillName': selectedSkill,
-        'days': daysData,
-      });
-      showSnackBar(context: context, message: "Days Calculation Updated Successfully");
-    } else {
-      await _firestore.collection('days').add({
-        'skillName': selectedSkill,
-        'days': daysData,
-      });
-      showSnackBar(context: context, message: "Days Calculation Added Successfully");
-    }
-
-    Navigator.pop(context);
+    // Proceed with navigation to edit page
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddDays(document: widget.document),
+      ),
+    );
   }
 
-
+  void _deleteRecord() async {
+    try {
+      if (widget.document != null) {
+        await _firestore.collection('days').doc(widget.document!.id).delete();
+        showSnackBar(context: context, message: "Record deleted successfully");
+        // Navigate back to the previous screen after deletion
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      print("Error deleting record: $e");
+      showSnackBar(context: context, message: "Error deleting record");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -176,6 +177,15 @@ class _AddDaysState extends State<AddDays> {
             color: CupertinoColors.white,
           ),
         ),
+        actions: [
+          if (widget.document != null)
+            IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () {
+                _deleteRecord();
+              },
+            ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
