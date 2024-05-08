@@ -6,6 +6,8 @@ import 'package:ppmt/screens/admin/master/days/add_days.dart';
 import 'package:ppmt/screens/admin/master/days/days_list.dart';
 import 'package:ppmt/screens/admin/master/level/add_level.dart';
 import 'package:ppmt/screens/admin/master/master.dart';
+import 'package:ppmt/screens/admin/master/points/add_point.dart';
+import 'package:ppmt/screens/admin/master/points/point_list.dart';
 import 'package:ppmt/screens/admin/master/skill/add_skill.dart';
 import 'package:ppmt/screens/admin/master/task/add_task.dart';
 import 'package:ppmt/screens/admin/master/task/task_list.dart';
@@ -64,4 +66,6 @@ Map<String, Widget Function(BuildContext)> route = {
   '/task_list': (context) => TaskList(),
   "/add_days": (context) => AddDays(),
   '/days_list': (context) => DaysList(),
+  "/add_point": (context) => AddPoint(),
+  '/point_list': (context) => PointList(),
 };

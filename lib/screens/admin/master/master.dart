@@ -5,6 +5,7 @@ import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/master/complexity/complexity_list.dart';
 import 'package:ppmt/screens/admin/master/days/days_list.dart';
 import 'package:ppmt/screens/admin/master/level/level_list.dart';
+import 'package:ppmt/screens/admin/master/points/point_list.dart';
 import 'package:ppmt/screens/admin/master/skill/skill_list.dart';
 import 'package:ppmt/screens/admin/master/task/task_list.dart';
 
@@ -23,7 +24,8 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
     'Skills',
     'Complexity / Severity',
     'Task Type',
-    "Days Calculation"
+    "Days Calculation",
+    "Points Calculation"
   ];
   String currentTabTitle = '';
 
@@ -31,7 +33,7 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 5,
+      length: 6,
       vsync: this,
     );
     _tabController.addListener(_handleTabSelection);
@@ -53,7 +55,7 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 5,
+      length: 6,
       child: Scaffold(
         appBar: AppBar(
           iconTheme: IconThemeData(
@@ -76,7 +78,7 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
                 style: TextStyle(
                   fontSize: 15,
                   color: kButtonColor,
-                  fontWeight: FontWeight.bold
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
@@ -133,6 +135,14 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
                   color: kButtonColor,
                 ),
               ),
+              Tab(
+                icon: Image.asset(
+                  'assets/icons/levels.png',
+                  width: 30,
+                  height: 30,
+                  color: kButtonColor,
+                ),
+              ),
             ],
           ),
         ),
@@ -143,7 +153,8 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
             SkillListPage(),
             ComplexityListPage(),
             TaskList(),
-            DaysList()
+            DaysList(),
+            PointList()
           ],
         ),
         floatingActionButton: FloatingActionButton(
@@ -164,6 +175,9 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
                 break;
               case 4:
                 Navigator.of(context).pushNamed('/add_days');
+                break;
+              case 5:
+                Navigator.of(context).pushNamed('/add_point');
                 break;
             }
           },

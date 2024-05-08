@@ -4,22 +4,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/master/days/add_days.dart';
+import 'package:ppmt/screens/admin/master/points/add_point.dart';
 
-class DaysList extends StatefulWidget {
-  const DaysList({Key? key}) : super(key: key);
+class PointList extends StatefulWidget {
+  const PointList({Key? key}) : super(key: key);
 
   @override
-  State<DaysList> createState() => _DaysListState();
+  State<PointList> createState() => _PointListState();
 }
 
-class _DaysListState extends State<DaysList> {
+class _PointListState extends State<PointList> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder(
-        stream: _firestore.collection('days').snapshots(),
+        stream: _firestore.collection('points').snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
             return Center(
@@ -39,14 +40,15 @@ class _DaysListState extends State<DaysList> {
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (BuildContext context, int index) {
               var document = snapshot.data!.docs[index];
-              Map<String, dynamic> daysData = document["days"];
+              print(document.data());
+              Map<String, dynamic> daysData = document["points"];
 
               var complexityNames = daysData.entries.first.value.keys.toList();
 
               List<DataColumn> columns = [
                 DataColumn(
                   label: Text(
-                    'Levels',
+                    'Task Type',
                   ),
                 ),
                 for (var complexityName in complexityNames)
@@ -103,7 +105,7 @@ class _DaysListState extends State<DaysList> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => AddDays(document: document),
+                            builder: (context) => AddPoint(document: document),
                           ),
                         );
                       },
@@ -127,9 +129,10 @@ class _DaysListState extends State<DaysList> {
 
   void _deleteRecord(String documentId) async {
     try {
-      await _firestore.collection('days').doc(documentId).delete();
+      await _firestore.collection('points').doc(documentId).delete();
       showSnackBar(context: context, message: "Record Deleted Successfully");
     } catch (e) {
+      print("Error deleting record: $e");
       showSnackBar(context: context, message: "Failed to Delete Record");
     }
   }

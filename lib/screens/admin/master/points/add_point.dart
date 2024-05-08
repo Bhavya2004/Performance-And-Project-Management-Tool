@@ -5,19 +5,19 @@ import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/constants/color.dart';
 
-class AddDays extends StatefulWidget {
+class AddPoint extends StatefulWidget {
   final QueryDocumentSnapshot<Object?>? document;
 
-  const AddDays({Key? key, this.document}) : super(key: key);
+  const AddPoint({Key? key, this.document}) : super(key: key);
 
   @override
-  State<AddDays> createState() => _AddDaysState();
+  State<AddPoint> createState() => _AddPointState();
 }
 
-class _AddDaysState extends State<AddDays> {
+class _AddPointState extends State<AddPoint> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<Map<String, dynamic>> complexityList = [];
-  List<Map<String, dynamic>> levelsList = [];
+  List<Map<String, dynamic>> taskTypeList = [];
   List<List<TextEditingController>> controllersList = [];
   List<String> skills = [];
   String? selectedSkill;
@@ -26,7 +26,7 @@ class _AddDaysState extends State<AddDays> {
   void initState() {
     super.initState();
     fetchComplexity();
-    fetchLevels();
+    fetchTaskType();
     fetchSkills();
   }
 
@@ -61,23 +61,14 @@ class _AddDaysState extends State<AddDays> {
         .cast<String>();
 
     setState(() {
-      // If the selected skill is disabled, reset it
-      if (!skills.contains(selectedSkill)) {
-        selectedSkill = null;
-        showSnackBar(
-          context: context,
-          message: "The selected skill has been disabled. Unable to edit.",
-        );
-      }
     });
   }
 
-  void fetchLevels() async {
-    QuerySnapshot levelsSnapshot = await _firestore.collection('levels').get();
+  void fetchTaskType() async {
+    QuerySnapshot levelsSnapshot = await _firestore.collection('tasks').get();
 
     setState(() {
-      levelsList = levelsSnapshot.docs
-          .where((doc) => doc['isDisabled'] == false)
+      taskTypeList = levelsSnapshot.docs
           .map((doc) => doc.data() as Map<String, dynamic>)
           .toList();
     });
@@ -86,7 +77,7 @@ class _AddDaysState extends State<AddDays> {
 
   void initializeControllers() {
     controllersList.clear();
-    for (int i = 0; i < levelsList.length; i++) {
+    for (int i = 0; i < taskTypeList.length; i++) {
       List<TextEditingController> controllers = [];
       for (int j = 0; j < complexityList.length; j++) {
         controllers.add(TextEditingController());
@@ -96,20 +87,20 @@ class _AddDaysState extends State<AddDays> {
 
     if (widget.document != null) {
       selectedSkill = widget.document!['skillName'] as String?;
-      Map<String, dynamic>? daysData =
-      widget.document!['days'] as Map<String, dynamic>?;
+      Map<String, dynamic>? pointsData =
+      widget.document!['points'] as Map<String, dynamic>?;
 
-      if (daysData != null) {
-        for (int i = 0; i < levelsList.length; i++) {
+      if (pointsData != null) {
+        for (int i = 0; i < taskTypeList.length; i++) {
           Map<String, dynamic>? levelData =
-          daysData[levelsList[i]['levelName']] as Map<String, dynamic>?;
+          pointsData[taskTypeList[i]['taskName']] as Map<String, dynamic>?;
 
           if (levelData != null) {
             for (int j = 0; j < complexityList.length; j++) {
               String complexityName =
               complexityList[j]['complexityName'] as String;
-              int days = levelData[complexityName] as int? ?? 0;
-              controllersList[i][j].text = days.toString();
+              int points = levelData[complexityName] as int? ?? 0;
+              controllersList[i][j].text = points.toString();
             }
           }
         }
@@ -117,7 +108,7 @@ class _AddDaysState extends State<AddDays> {
     }
   }
 
-  void addOrUpdateDays() async {
+  void addOrUpdatePoints() async {
     if (selectedSkill == null) {
       showSnackBar(context: context, message: "Please select a skill first!");
       return;
@@ -125,7 +116,7 @@ class _AddDaysState extends State<AddDays> {
 
     // Check if the selected skill already exists in the database
     QuerySnapshot skillSnapshot = await _firestore
-        .collection('days')
+        .collection('points')
         .where('skillName', isEqualTo: selectedSkill)
         .get();
 
@@ -137,50 +128,33 @@ class _AddDaysState extends State<AddDays> {
       return;
     }
 
-    Map<String, dynamic> daysData = {};
+    Map<String, dynamic> pointsData = {};
 
-    for (int i = 0; i < levelsList.length; i++) {
+    for (int i = 0; i < taskTypeList.length; i++) {
       Map<String, dynamic> levelData = {};
 
       for (int j = 0; j < complexityList.length; j++) {
-        int days = int.tryParse(controllersList[i][j].text) ?? 0;
-        levelData[complexityList[j]['complexityName'] as String] = days;
+        int points = int.tryParse(controllersList[i][j].text) ?? 0;
+        levelData[complexityList[j]['complexityName'] as String] = points;
       }
 
-      daysData[levelsList[i]['levelName'] as String] = levelData;
-    }
-
-    // Check if the selected skill is disabled
-    if (widget.document != null) {
-      QuerySnapshot disabledSkillSnapshot = await _firestore
-          .collection('skills')
-          .where('skillName', isEqualTo: selectedSkill)
-          .where('isDisabled', isEqualTo: true)
-          .get();
-
-      if (disabledSkillSnapshot.docs.isNotEmpty) {
-        showSnackBar(
-          context: context,
-          message: "The selected skill has been disabled. Unable to edit.",
-        );
-        return;
-      }
+      pointsData[taskTypeList[i]['taskName'] as String] = levelData;
     }
 
     if (widget.document != null) {
-      await _firestore.collection('days').doc(widget.document!.id).update({
+      await _firestore.collection('points').doc(widget.document!.id).update({
         'skillName': selectedSkill,
-        'days': daysData,
+        'points': pointsData,
       });
       showSnackBar(
-          context: context, message: "Days Calculation Updated Successfully");
+          context: context, message: "Points Calculation Updated Successfully");
     } else {
-      await _firestore.collection('days').add({
+      await _firestore.collection('points').add({
         'skillName': selectedSkill,
-        'days': daysData,
+        'points': pointsData,
       });
       showSnackBar(
-          context: context, message: "Days Calculation Added Successfully");
+          context: context, message: "Points Calculation Added Successfully");
     }
 
     Navigator.pop(context);
@@ -197,7 +171,7 @@ class _AddDaysState extends State<AddDays> {
         ),
         backgroundColor: kAppBarColor,
         title: Text(
-          widget.document != null ? 'Edit Days' : 'Add Days',
+          widget.document != null ? 'Edit Points' : 'Add Points',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -257,14 +231,14 @@ class _AddDaysState extends State<AddDays> {
                       ),
                   ],
                 ),
-                for (int i = 0; i < levelsList.length; i++)
+                for (int i = 0; i < taskTypeList.length; i++)
                   TableRow(
                     children: [
                       TableCell(
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                            levelsList[i]['levelName'] as String,
+                            taskTypeList[i]['taskName'] as String,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
@@ -288,9 +262,9 @@ class _AddDaysState extends State<AddDays> {
             SizedBox(height: 16.0),
             button(
               backgroundColor: CupertinoColors.black,
-              buttonName: widget.document != null ? 'Update Days' : 'Add Days',
+              buttonName: widget.document != null ? 'Update Points' : 'Add Points',
               textColor: CupertinoColors.white,
-              onPressed: addOrUpdateDays,
+              onPressed: addOrUpdatePoints,
             ),
           ],
         ),
