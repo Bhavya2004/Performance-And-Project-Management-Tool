@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ppmt/auth_page.dart';
 import 'package:ppmt/screens/admin/master/complexity/add_complexity.dart';
 import 'package:ppmt/screens/admin/master/complexity/complexity_list.dart';
 import 'package:ppmt/screens/admin/master/days/add_days.dart';
@@ -27,8 +26,6 @@ import 'package:ppmt/screens/admin/members/users.dart';
 import 'package:ppmt/screens/user/user_skill_level.dart';
 
 Map<String, Widget Function(BuildContext)> route = {
-  '/': (context) => Splash(),
-  '/auth': (context) => AuthPage(),
   '/signin': (context) => SignInScreen(),
   '/admin_dashboard': (context) => AdminDashboard(),
   '/user_dashboard': (context) => UserDashboard(),

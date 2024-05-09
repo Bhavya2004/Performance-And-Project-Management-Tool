@@ -14,9 +14,8 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  final _formSignInKey = GlobalKey<FormState>();
-  final _formDialogKey = GlobalKey<FormState>();
-
+  final formSignInKey = GlobalKey<FormState>();
+  final formForgetPasswordDialogKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final forgetEmailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -42,7 +41,7 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   Future<void> signUserIn() async {
-    if (!_formSignInKey.currentState!.validate() || !_isMounted) {
+    if (!formSignInKey.currentState!.validate() || !_isMounted) {
       return;
     }
 
@@ -90,7 +89,7 @@ class _SignInScreenState extends State<SignInScreen> {
         ),
       ),
       content: Form(
-        key: _formDialogKey,
+        key: formForgetPasswordDialogKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -109,7 +108,7 @@ class _SignInScreenState extends State<SignInScreen> {
       actions: <Widget>[
         TextButton(
           onPressed: () {
-            if (_formDialogKey.currentState!.validate()) {
+            if (formForgetPasswordDialogKey.currentState!.validate()) {
               resetPassword(forgetEmailController.text);
               Navigator.of(context).pop();
             }
@@ -166,7 +165,7 @@ class _SignInScreenState extends State<SignInScreen> {
         height: MediaQuery.of(context).size.height,
         width: double.infinity,
         child: Form(
-          key: _formSignInKey,
+          key: formSignInKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[

@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:ppmt/screens/signin_screen.dart';
 
 class Splash extends StatefulWidget {
-  const Splash({super.key});
+  const Splash({Key? key}) : super(key: key);
 
   @override
   State<Splash> createState() => _SplashState();
@@ -34,16 +35,17 @@ class _SplashState extends State<Splash> {
               Column(
                 children: <Widget>[
                   FadeInUp(
-                      duration: Duration(
-                        milliseconds: 1000,
+                    duration: Duration(
+                      milliseconds: 1000,
+                    ),
+                    child: Text(
+                      "Welcome",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 30,
                       ),
-                      child: Text(
-                        "Welcome",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 30,
-                        ),
-                      )),
+                    ),
+                  ),
                   SizedBox(
                     height: 20,
                   ),
@@ -87,11 +89,17 @@ class _SplashState extends State<Splash> {
     );
   }
 
-  void initializeFirstLaunch() async {
+  void initializeFirstLaunch() {
     Timer(
       Duration(seconds: 5),
           () {
-        Navigator.of(context).pushReplacementNamed('/auth');
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) {
+              return SignInScreen();
+            },
+          ),
+        );
       },
     );
   }
