@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/constants/color.dart';
-import 'package:ppmt/screens/admin/master/days/add_days.dart';
 import 'package:ppmt/screens/admin/master/points/add_point.dart';
 
 class PointList extends StatefulWidget {
@@ -136,5 +135,4 @@ class _PointListState extends State<PointList> {
       showSnackBar(context: context, message: "Failed to Delete Record");
     }
   }
-
 }

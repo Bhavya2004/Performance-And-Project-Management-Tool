@@ -1,32 +1,31 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
-import 'package:ppmt/screens/admin/master/task/subtask/add_subtask.dart';
-import 'package:ppmt/screens/admin/master/task/subtask/subtask_list.dart';
-import 'package:ppmt/screens/admin/master/task/task_status/add_task_status.dart';
-import 'package:ppmt/screens/admin/master/task/task_status/task_status_list.dart';
+import 'package:ppmt/screens/admin/master/task/sub_task/add_subtask.dart';
+import 'package:ppmt/screens/admin/master/task/sub_task/subtask_list.dart';
+import 'package:ppmt/screens/admin/master/task/task_type_status/add_task_type_status.dart';
+import 'package:ppmt/screens/admin/master/task/task_type_status/task_type_status_list.dart';
 
-class TaskDetail extends StatefulWidget {
-  final String taskId;
-  final String taskName;
+class TaskTypeDetail extends StatefulWidget {
+  final String taskTypeID;
+  final String taskTypeName;
 
-  TaskDetail({required this.taskId, Key? key, required this.taskName})
+  TaskTypeDetail(
+      {required this.taskTypeID, Key? key, required this.taskTypeName})
       : super(key: key);
 
   @override
-  State<TaskDetail> createState() => _TaskDetailState();
+  State<TaskTypeDetail> createState() => _TaskTypeDetailState();
 }
 
-class _TaskDetailState extends State<TaskDetail>
+class _TaskTypeDetailState extends State<TaskTypeDetail>
     with SingleTickerProviderStateMixin {
-  final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-  late TabController _tabController;
+  late TabController tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
+    tabController = TabController(
       length: 2,
       vsync: this,
     );
@@ -34,7 +33,7 @@ class _TaskDetailState extends State<TaskDetail>
 
   @override
   void dispose() {
-    _tabController.dispose();
+    tabController.dispose();
     super.dispose();
   }
 
@@ -52,7 +51,7 @@ class _TaskDetailState extends State<TaskDetail>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                widget.taskName,
+                widget.taskTypeName,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -62,7 +61,7 @@ class _TaskDetailState extends State<TaskDetail>
             ],
           ),
           bottom: TabBar(
-            controller: _tabController,
+            controller: tabController,
             labelColor: Colors.orange,
             indicatorColor: kButtonColor,
             labelStyle: TextStyle(
@@ -77,27 +76,31 @@ class _TaskDetailState extends State<TaskDetail>
                 text: "Sub Task",
               ),
               Tab(
-                text: "Task Status",
+                text: "Task Type Status",
               ),
             ],
           ),
         ),
         body: TabBarView(
-          controller: _tabController,
+          controller: tabController,
           children: [
-            SubTaskList(taskId: widget.taskId),
-            TaskStatusList(taskId: widget.taskId),
+            SubTaskList(taskTypeID: widget.taskTypeID),
+            TaskTypeStatusList(taskTypeID: widget.taskTypeID),
           ],
         ),
         floatingActionButton: FloatingActionButton(
           isExtended: true,
           onPressed: () {
-            switch (_tabController.index) {
+            switch (tabController.index) {
               case 0:
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AddSubTask(taskId: widget.taskId),
+                    builder: (context) => AddSubTask(
+                      taskTypeID: widget.taskTypeID,
+                      subTaskID: "",
+                      subTaskName: "",
+                    ),
                   ),
                 );
                 break;
@@ -105,7 +108,11 @@ class _TaskDetailState extends State<TaskDetail>
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AddTaskStatus(taskId: widget.taskId),
+                    builder: (context) => AddTaskTypeStatus(
+                      taskTypeID: widget.taskTypeID,
+                      taskTypeStatusID: "",
+                      taskTypeStatusName: "",
+                    ),
                   ),
                 );
                 break;

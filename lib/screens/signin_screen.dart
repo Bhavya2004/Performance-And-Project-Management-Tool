@@ -66,12 +66,10 @@ class _SignInScreenState extends State<SignInScreen> {
 
       if (docSnapshot.exists) {
         final role = docSnapshot.get('role');
-        Navigator.pushReplacement(
+        Navigator.pushNamedAndRemoveUntil(
           context,
-          MaterialPageRoute(
-            builder: (context) =>
-                role == "admin" ? AdminDashboard() : UserDashboard(),
-          ),
+          role == "admin" ? '/admin_dashboard' : '/user_dashboard',
+          (route) => false,
         );
       }
     } on FirebaseAuthException catch (e) {

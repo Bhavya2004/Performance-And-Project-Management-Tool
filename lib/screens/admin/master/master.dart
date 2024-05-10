@@ -2,12 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
-import 'package:ppmt/screens/admin/master/complexity/complexity_list.dart';
 import 'package:ppmt/screens/admin/master/days/days_list.dart';
 import 'package:ppmt/screens/admin/master/level/level_list.dart';
 import 'package:ppmt/screens/admin/master/points/point_list.dart';
 import 'package:ppmt/screens/admin/master/skill/skill_list.dart';
-import 'package:ppmt/screens/admin/master/task/task_list.dart';
+import 'package:ppmt/screens/admin/master/task/task_type_list.dart';
 
 class Master extends StatefulWidget {
   const Master({Key? key}) : super(key: key);
@@ -142,7 +141,7 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
           children: [
             LevelListPage(),
             SkillListPage(),
-            TaskList(),
+            TaskTypeList(),
             DaysList(),
             PointList()
           ],
@@ -158,7 +157,7 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
                 Navigator.of(context).pushNamed('/add_skill');
                 break;
               case 2:
-                Navigator.of(context).pushNamed('/add_task');
+                Navigator.of(context).pushNamed('/add_task_type');
                 break;
               case 3:
                 Navigator.of(context).pushNamed('/add_days');

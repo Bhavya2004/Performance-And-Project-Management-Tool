@@ -2,30 +2,27 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/constants/color.dart';
-import 'package:ppmt/screens/admin/master/task/subtask/add_subtask.dart';
-import 'package:ppmt/screens/admin/master/task/task_status/add_task_status.dart';
+import 'package:ppmt/screens/admin/master/task/task_type_status/add_task_type_status.dart';
 
-class TaskStatusList extends StatefulWidget {
-  final String taskId;
+class TaskTypeStatusList extends StatefulWidget {
+  final String taskTypeID;
 
-  TaskStatusList({required this.taskId, Key? key}) : super(key: key);
+  TaskTypeStatusList({required this.taskTypeID, Key? key}) : super(key: key);
 
   @override
-  _TaskStatusListState createState() => _TaskStatusListState();
+  _TaskTypeStatusListState createState() => _TaskTypeStatusListState();
 }
 
-class _TaskStatusListState extends State<TaskStatusList> {
-  final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-
+class _TaskTypeStatusListState extends State<TaskTypeStatusList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder<QuerySnapshot>(
-        stream: firebaseFirestore
-            .collection('taskStatus')
+        stream: FirebaseFirestore.instance
+            .collection('taskTypeStatus')
             .where(
-              'taskID',
-              isEqualTo: widget.taskId,
+              'taskTypeID',
+              isEqualTo: widget.taskTypeID,
             )
             .snapshots(),
         builder: (context, snapshot) {
@@ -55,11 +52,11 @@ class _TaskStatusListState extends State<TaskStatusList> {
             itemCount: sortedDocs.length,
             itemBuilder: (context, index) {
               final taskStatus = taskStatuses[index];
-              final colorString = taskStatus['taskStatusColor'] as String?;
+              final colorString = taskStatus['taskTypeStatusColor'] as String?;
               final color = colorString != null
                   ? Color(int.parse(colorString, radix: 16))
                   : Colors.transparent;
-              final statusTypeID = taskStatus['taskStatusName'] as String?;
+              final statusTypeID = taskStatus['taskTypeStatusName'] as String?;
               final isEditable =
                   statusTypeID != 'To Do' && statusTypeID != 'Done';
               final textColor =
@@ -82,7 +79,7 @@ class _TaskStatusListState extends State<TaskStatusList> {
       bool isEditable,
       Color textColor,
       Color color) {
-    final String statusTypeID = data['taskStatusName'];
+    final String statusTypeID = data['taskTypeStatusName'];
     final bool isToDoOrDone = statusTypeID == 'To Do' || statusTypeID == 'Done';
     final bool isDisabled = data['isDisabled'] ?? false;
     final bool canEdit = !isToDoOrDone;
@@ -99,7 +96,7 @@ class _TaskStatusListState extends State<TaskStatusList> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              data['taskStatusName'],
+              data['taskTypeStatusName'],
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
@@ -119,20 +116,21 @@ class _TaskStatusListState extends State<TaskStatusList> {
                         onPressed: isDisabled
                             ? null
                             : () async {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AddTaskStatus(
-                                taskId: widget.taskId,
-                                taskStatusID: data["taskStatusID"],
-                                taskStatusName: data["taskStatusName"],
-                                taskStatusColor: data["taskStatusColor"],
-                                isEditMode: true,
-                              ),
-                            ),
-                          );
-
-                        },
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AddTaskTypeStatus(
+                                      taskTypeID: widget.taskTypeID,
+                                      taskTypeStatusID:
+                                          data["taskTypeStatusID"],
+                                      taskTypeStatusName:
+                                          data["taskTypeStatusName"],
+                                      taskTypeStatusColor:
+                                          data["taskTypeStatusColor"],
+                                    ),
+                                  ),
+                                );
+                              },
                       ),
                       IconButton(
                         icon: isDisabled
@@ -145,18 +143,9 @@ class _TaskStatusListState extends State<TaskStatusList> {
                                 color: kAppBarColor,
                               ),
                         onPressed: () async {
-                          if (!isToDoOrDone) {
-                            await firebaseFirestore
-                                .collection('taskStatus')
-                                .doc(document.id)
-                                .update({'isDisabled': !isDisabled});
-                          } else if (isDisabled) {
-                            // Enable the status if it's "To Do" or "Done" and currently disabled
-                            await firebaseFirestore
-                                .collection('taskStatus')
-                                .doc(document.id)
-                                .update({'isDisabled': false});
-                          }
+                          updateTaskTypeStatus(
+                              taskTypeStatusID:
+                                  data["taskTypeStatusID"].toString());
                         },
                       ),
                     ],
@@ -166,5 +155,31 @@ class _TaskStatusListState extends State<TaskStatusList> {
         ),
       ),
     );
+  }
+
+  Future<void> updateTaskTypeStatus({required String taskTypeStatusID}) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection("taskTypeStatus")
+          .where("taskTypeStatusID", isEqualTo: taskTypeStatusID)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final taskTypeStatusSnapshot = querySnapshot.docs.first;
+        final taskTypeStatusData =
+            taskTypeStatusSnapshot.data() as Map<String, dynamic>?;
+
+        if (taskTypeStatusData != null) {
+          await taskTypeStatusSnapshot.reference.update(
+              {"isDisabled": !(taskTypeStatusData["isDisabled"] ?? false)});
+        } else {
+          throw ("Document data is null or empty");
+        }
+      } else {
+        throw ("Skill with ID $taskTypeStatusID not found.");
+      }
+    } catch (e) {
+      throw ("Error updating task type details: $e");
+    }
   }
 }

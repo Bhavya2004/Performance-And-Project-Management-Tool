@@ -93,13 +93,7 @@ class _SplashState extends State<Splash> {
     Timer(
       Duration(seconds: 5),
       () {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) {
-              return SignInScreen();
-            },
-          ),
-        );
+        Navigator.of(context).pushReplacementNamed('/sign_in');
       },
     );
   }

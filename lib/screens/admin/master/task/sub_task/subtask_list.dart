@@ -2,30 +2,28 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/constants/color.dart';
-import 'package:ppmt/screens/admin/master/task/subtask/add_subtask.dart';
+import 'package:ppmt/screens/admin/master/task/sub_task/add_subtask.dart';
 
 class SubTaskList extends StatefulWidget {
-  final String taskId;
+  final String taskTypeID;
 
-  SubTaskList({required this.taskId, Key? key}) : super(key: key);
+  SubTaskList({required this.taskTypeID, Key? key}) : super(key: key);
 
   @override
   _SubTaskListState createState() => _SubTaskListState();
 }
 
 class _SubTaskListState extends State<SubTaskList> {
-  final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder<QuerySnapshot>(
-        stream: firebaseFirestore
-            .collection('subtasks')
+        stream: FirebaseFirestore.instance
+            .collection('subTask')
             .where(
-          'taskId',
-          isEqualTo: widget.taskId,
-        )
+              'taskTypeID',
+              isEqualTo: widget.taskTypeID,
+            )
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
@@ -86,40 +84,37 @@ class _SubTaskListState extends State<SubTaskList> {
                   icon: data['isDisabled']
                       ? SizedBox()
                       : Icon(
-                    CupertinoIcons.pencil,
-                    color: kEditColor,
-                  ),
+                          CupertinoIcons.pencil,
+                          color: kEditColor,
+                        ),
                   onPressed: data['isDisabled']
                       ? null
                       : () async {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AddSubTask(
-                          taskId: widget.taskId,
-                          subTaskID: document.id,
-                          subTaskName: data['subTaskName'],
-                          isEditMode: true,
-                        ),
-                      ),
-                    );
-                  },
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddSubTask(
+                                taskTypeID: widget.taskTypeID,
+                                subTaskID: data['subTaskID'],
+                                subTaskName: data['subTaskName'],
+                              ),
+                            ),
+                          );
+                        },
                 ),
                 IconButton(
                   icon: data['isDisabled']
                       ? Icon(
-                    Icons.visibility_off,
-                    color: kDeleteColor,
-                  )
+                          Icons.visibility_off,
+                          color: kDeleteColor,
+                        )
                       : Icon(
-                    Icons.visibility,
-                    color: kAppBarColor,
-                  ),
+                          Icons.visibility,
+                          color: kAppBarColor,
+                        ),
                   onPressed: () async {
-                    await firebaseFirestore
-                        .collection('subtasks')
-                        .doc(document.id)
-                        .update({'isDisabled': !data['isDisabled']});
+                    updateSubTaskStatus(
+                        subTaskID: data["subTaskID"].toString());
                   },
                 ),
               ],
@@ -128,5 +123,30 @@ class _SubTaskListState extends State<SubTaskList> {
         ),
       ),
     );
+  }
+
+  Future<void> updateSubTaskStatus({required String subTaskID}) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection("subTask")
+          .where("subTaskID", isEqualTo: subTaskID)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final subTaskSnapshot = querySnapshot.docs.first;
+        final subTaskData = subTaskSnapshot.data() as Map<String, dynamic>?;
+
+        if (subTaskData != null) {
+          await subTaskSnapshot.reference
+              .update({"isDisabled": !(subTaskData["isDisabled"] ?? false)});
+        } else {
+          throw ("Document data is null or empty");
+        }
+      } else {
+        throw ("Skill with ID $subTaskID not found.");
+      }
+    } catch (e) {
+      throw ("Error updating Sub Task details: $e");
+    }
   }
 }
