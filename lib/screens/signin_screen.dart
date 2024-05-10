@@ -2,12 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/components/textfield.dart';
 import 'package:ppmt/constants/color.dart';
+import 'package:ppmt/screens/admin/admin_dashboard.dart';
+import 'package:ppmt/screens/user/user_dashboard.dart';
 
 class SignInScreen extends StatefulWidget {
-  const SignInScreen({Key? key}) : super(key: key);
+  const SignInScreen({super.key});
 
   @override
   _SignInScreenState createState() => _SignInScreenState();
@@ -55,8 +58,6 @@ class _SignInScreenState extends State<SignInScreen> {
         password: passwordController.text,
       );
 
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
       final user = FirebaseAuth.instance.currentUser;
       final docSnapshot = await FirebaseFirestore.instance
           .collection('users')
@@ -65,15 +66,20 @@ class _SignInScreenState extends State<SignInScreen> {
 
       if (docSnapshot.exists) {
         final role = docSnapshot.get('role');
-        Navigator.pushNamedAndRemoveUntil(
+        Navigator.pushReplacement(
           context,
-          role == "admin" ? '/admin_dashboard' : '/user_dashboard',
-          (_) => false,
+          MaterialPageRoute(
+            builder: (context) =>
+                role == "admin" ? AdminDashboard() : UserDashboard(),
+          ),
         );
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-credential') {
-        showSnackBar(context: context, message: "Email/Password is invalid");
+        showSnackBar(
+          context: context,
+          message: "Email/Password is invalid",
+        );
       }
     }
   }
@@ -225,7 +231,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               );
                             },
                             child: Text(
-                              "Forgot Password",
+                              "Forgot Password?",
                               style: TextStyle(
                                 fontSize: 15,
                                 color: Colors.grey[700],
@@ -236,8 +242,15 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 40),
-                      child: buildLoginButton(),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 40,
+                      ),
+                      child: button(
+                        onPressed: signUserIn,
+                        backgroundColor: CupertinoColors.black,
+                        textColor: CupertinoColors.white,
+                        buttonName: "Sign In",
+                      ),
                     ),
                   ],
                 ),
@@ -246,7 +259,9 @@ class _SignInScreenState extends State<SignInScreen> {
                 height: MediaQuery.of(context).size.height / 3,
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage('assets/login.png'),
+                    image: AssetImage(
+                      'assets/login.png',
+                    ),
                     fit: BoxFit.cover,
                   ),
                 ),

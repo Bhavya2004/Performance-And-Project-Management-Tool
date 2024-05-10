@@ -5,6 +5,7 @@ import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/components/textfield.dart';
 import 'package:ppmt/constants/color.dart';
+import 'package:ppmt/constants/generate_id.dart';
 
 class AddSkill extends StatefulWidget {
   final String skillName;
@@ -18,13 +19,13 @@ class AddSkill extends StatefulWidget {
 }
 
 class AddSkillState extends State<AddSkill> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController skillController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+  TextEditingController skillNameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    skillController.text = widget.skillName;
+    skillNameController.text = widget.skillName;
   }
 
   @override
@@ -46,12 +47,12 @@ class AddSkillState extends State<AddSkill> {
       ),
       body: SingleChildScrollView(
         child: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               textFormField(
-                controller: skillController,
+                controller: skillNameController,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return "Skill is required";
@@ -82,7 +83,7 @@ class AddSkillState extends State<AddSkill> {
   }
 
   Future<void> submit() async {
-    if (_formKey.currentState!.validate()) {
+    if (formKey.currentState!.validate()) {
       try {
         if (widget.skillName.isNotEmpty) {
           await updateSkill();
@@ -100,8 +101,12 @@ class AddSkillState extends State<AddSkill> {
 
   Future<void> addSkill() async {
     try {
+      int lastSkillID =
+          await getLastID(collectionName: "skills", primaryKey: "skillID");
+      int newSkillID = lastSkillID + 1;
       await FirebaseFirestore.instance.collection('skills').add({
-        'skillName': skillController.text.trim(),
+        "skillID": newSkillID.toString(),
+        'skillName': skillNameController.text.trim(),
         'isDisabled': false,
       });
     } catch (e) {
@@ -111,14 +116,26 @@ class AddSkillState extends State<AddSkill> {
 
   Future<void> updateSkill() async {
     try {
-      await FirebaseFirestore.instance
+      final querySnapshot = await FirebaseFirestore.instance
           .collection('skills')
-          .doc(widget.skillID)
-          .update({
-        'skillName': skillController.text.trim(),
-      });
+          .where('skillID', isEqualTo: widget.skillID)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final skillSnapShot = querySnapshot.docs.first;
+        final skillData = skillSnapShot.data() as Map<String, dynamic>?;
+
+        if (skillData != null) {
+          await skillSnapShot.reference
+              .update({'skillName': skillNameController.text});
+        } else {
+          throw ('Document data is null or empty');
+        }
+      } else {
+        throw ('Level with ID ${widget.skillID} not found.');
+      }
     } catch (e) {
-      throw ('Error updating skill: $e');
+      throw ('Error updating skill details: $e');
     }
   }
 }

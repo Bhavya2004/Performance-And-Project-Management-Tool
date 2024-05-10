@@ -10,7 +10,7 @@ import 'package:ppmt/screens/admin/master/points/point_list.dart';
 import 'package:ppmt/screens/admin/master/skill/add_skill.dart';
 import 'package:ppmt/screens/admin/master/task/add_task.dart';
 import 'package:ppmt/screens/admin/master/task/task_list.dart';
-import 'package:ppmt/screens/admin/members/add_skill_level.dart';
+import 'package:ppmt/screens/user/skill_level/add_skill_level.dart';
 import 'package:ppmt/screens/admin/members/add_user.dart';
 import 'package:ppmt/screens/admin/admin_dashboard.dart';
 import 'package:ppmt/screens/admin/master/level/level_list.dart';
@@ -23,7 +23,7 @@ import 'package:ppmt/screens/signin_screen.dart';
 import 'package:ppmt/screens/splash_screen.dart';
 import 'package:ppmt/screens/user/user_dashboard.dart';
 import 'package:ppmt/screens/admin/members/users.dart';
-import 'package:ppmt/screens/user/user_skill_level.dart';
+import 'package:ppmt/screens/user/skill_level/skill_level_list.dart';
 
 Map<String, Widget Function(BuildContext)> route = {
   '/signin': (context) => SignInScreen(),
@@ -54,7 +54,7 @@ Map<String, Widget Function(BuildContext)> route = {
         userID: "",
         userName: "",
       ),
-  '/user_skill_level': (context) => UserSkillLevel(
+  '/user_skill_level': (context) => SkillLevelList(
         UserID: "",
       ),
   "/add_complexity": (context) => AddComplexity(),

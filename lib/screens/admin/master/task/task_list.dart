@@ -68,7 +68,7 @@ class _TaskListState extends State<TaskList> {
                                     ),
                                   ),
                                 ).then(
-                                      (value) {
+                                  (value) {
                                     if (value == true) {
                                       setState(() {});
                                     }

@@ -13,7 +13,10 @@ class LevelListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder<QuerySnapshot>(
-        stream: firebaseFirestore.collection('levels').snapshots(),
+        stream: firebaseFirestore
+            .collection('levels')
+            .orderBy('levelID')
+            .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(
@@ -100,14 +103,8 @@ class LevelListPage extends StatelessWidget {
                           Icons.visibility,
                           color: kAppBarColor,
                         ),
-                  onPressed: () async {
-                    await firebaseFirestore
-                        .collection('levels')
-                        .doc(document.id)
-                        .update({
-                      'isDisabled': data['isDisabled'] == true ? false : true,
-                    });
-                  },
+                  onPressed: () =>
+                      updateLevelStatus(levelID: data["levelID"].toString()),
                 ),
               ],
             ),
@@ -115,5 +112,30 @@ class LevelListPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> updateLevelStatus({required String levelID}) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('levels')
+          .where('levelID', isEqualTo: levelID)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final levelSnapshot = querySnapshot.docs.first;
+        final levelData = levelSnapshot.data() as Map<String, dynamic>?;
+
+        if (levelData != null) {
+          await levelSnapshot.reference
+              .update({'isDisabled': !(levelData['isDisabled'] ?? false)});
+        } else {
+          throw ('Document data is null or empty');
+        }
+      } else {
+        throw ('Level with ID $levelID not found.');
+      }
+    } catch (e) {
+      throw ('Error updating level details: $e');
+    }
   }
 }

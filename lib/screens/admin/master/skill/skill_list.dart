@@ -13,7 +13,10 @@ class SkillListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder<QuerySnapshot>(
-        stream: firebaseFirestore.collection('skills').snapshots(),
+        stream: firebaseFirestore
+            .collection('skills')
+            .orderBy('skillName')
+            .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(
@@ -23,18 +26,7 @@ class SkillListPage extends StatelessWidget {
             );
           }
 
-          List<DocumentSnapshot> sortedDocs = snapshot.data!.docs.toList()
-            ..sort((a, b) {
-              bool aDisabled = a['isDisabled'] ?? false;
-              bool bDisabled = b['isDisabled'] ?? false;
-              if (aDisabled && !bDisabled) {
-                return 1;
-              } else if (!aDisabled && bDisabled) {
-                return -1;
-              } else {
-                return 0;
-              }
-            });
+          List<DocumentSnapshot> sortedDocs = snapshot.data!.docs.toList();
 
           return ListView.builder(
             itemCount: sortedDocs.length,
@@ -73,41 +65,37 @@ class SkillListPage extends StatelessWidget {
                   icon: data['isDisabled']
                       ? SizedBox()
                       : Icon(
-                    CupertinoIcons.pencil,
-                    color: kEditColor,
-                  ),
+                          CupertinoIcons.pencil,
+                          color: kEditColor,
+                        ),
                   onPressed: data['isDisabled']
                       ? null
                       : () async {
-                    String skillName = data['skillName'];
-                    String skillID = document.id;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AddSkill(
-                          skillName: skillName,
-                          skillID: skillID,
-                        ),
-                      ),
-                    );
-                  },
+                          String skillName = data['skillName'];
+                          String skillID = data['skillID'];
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddSkill(
+                                skillName: skillName,
+                                skillID: skillID,
+                              ),
+                            ),
+                          );
+                        },
                 ),
                 IconButton(
                   icon: data['isDisabled']
                       ? Icon(
-                    Icons.visibility_off,
-                    color: kDeleteColor,
-                  )
+                          Icons.visibility_off,
+                          color: kDeleteColor,
+                        )
                       : Icon(
-                    Icons.visibility,
-                    color: kAppBarColor,
-                  ),
-                  onPressed: () async {
-                    await firebaseFirestore
-                        .collection('skills')
-                        .doc(document.id)
-                        .update({'isDisabled': !data['isDisabled']});
-                  },
+                          Icons.visibility,
+                          color: kAppBarColor,
+                        ),
+                  onPressed: () =>
+                      updateSkillStatus(skillID: data["skillID"].toString()),
                 ),
               ],
             ),
@@ -115,5 +103,30 @@ class SkillListPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> updateSkillStatus({required String skillID}) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('skills')
+          .where('skillID', isEqualTo: skillID)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final skillSnapshot = querySnapshot.docs.first;
+        final skillData = skillSnapshot.data() as Map<String, dynamic>?;
+
+        if (skillData != null) {
+          await skillSnapshot.reference
+              .update({'isDisabled': !(skillData['isDisabled'] ?? false)});
+        } else {
+          throw ('Document data is null or empty');
+        }
+      } else {
+        throw ('Skill with ID $skillID not found.');
+      }
+    } catch (e) {
+      throw ('Error updating skill details: $e');
+    }
   }
 }

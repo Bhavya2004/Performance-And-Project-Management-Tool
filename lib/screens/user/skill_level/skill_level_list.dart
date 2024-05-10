@@ -2,18 +2,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/constants/color.dart';
-import 'package:ppmt/screens/admin/members/add_skill_level.dart';
+import 'package:ppmt/screens/user/skill_level/add_skill_level.dart';
 
-class UserSkillLevel extends StatefulWidget {
+class SkillLevelList extends StatefulWidget {
   final String? UserID;
 
-  UserSkillLevel({Key? key, this.UserID}) : super(key: key);
+  SkillLevelList({Key? key, this.UserID}) : super(key: key);
 
   @override
-  State<UserSkillLevel> createState() => _SkillLevelState();
+  State<SkillLevelList> createState() => _SkillLevelState();
 }
 
-class _SkillLevelState extends State<UserSkillLevel> {
+class _SkillLevelState extends State<SkillLevelList> {
   List<DocumentSnapshot> _userSkillsLevels = [];
   List<DocumentSnapshot> _disabledUserSkillsLevels = [];
 

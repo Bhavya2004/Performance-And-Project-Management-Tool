@@ -22,7 +22,6 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
   final List<String> tabTitles = [
     'Levels',
     'Skills',
-    'Complexity / Severity',
     'Task Type',
     "Days Calculation",
     "Points Calculation"
@@ -33,7 +32,7 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 6,
+      length: 5,
       vsync: this,
     );
     _tabController.addListener(_handleTabSelection);
@@ -55,7 +54,7 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 6,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           iconTheme: IconThemeData(
@@ -113,14 +112,6 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
               ),
               Tab(
                 icon: Image.asset(
-                  'assets/icons/complexity.png',
-                  width: 30,
-                  height: 30,
-                  color: kButtonColor,
-                ),
-              ),
-              Tab(
-                icon: Image.asset(
                   'assets/icons/tasks.png',
                   width: 30,
                   height: 30,
@@ -151,7 +142,6 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
           children: [
             LevelListPage(),
             SkillListPage(),
-            ComplexityListPage(),
             TaskList(),
             DaysList(),
             PointList()
@@ -168,15 +158,12 @@ class _MasterState extends State<Master> with SingleTickerProviderStateMixin {
                 Navigator.of(context).pushNamed('/add_skill');
                 break;
               case 2:
-                Navigator.of(context).pushNamed('/add_complexity');
-                break;
-              case 3:
                 Navigator.of(context).pushNamed('/add_task');
                 break;
-              case 4:
+              case 3:
                 Navigator.of(context).pushNamed('/add_days');
                 break;
-              case 5:
+              case 4:
                 Navigator.of(context).pushNamed('/add_point');
                 break;
             }

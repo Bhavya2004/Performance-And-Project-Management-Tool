@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/members/add_user.dart';
-import 'package:ppmt/screens/user/user_skill_level.dart';
+import 'package:ppmt/screens/signin_screen.dart';
+import 'package:ppmt/screens/user/skill_level/skill_level_list.dart';
 
 class UserDashboard extends StatefulWidget {
   UserDashboard({Key? key});
@@ -45,9 +46,13 @@ class _UserDashboardState extends State<UserDashboard> {
               );
             }
             if (snapshot.hasData && snapshot.data != null) {
-              return Text('Logged in as ${snapshot.data!.email}');
+              return Text(
+                'Logged in as ${snapshot.data!.email}',
+              );
             }
-            return Text('Not logged in');
+            return Text(
+              'Not logged in',
+            );
           },
         ),
       ),
@@ -163,7 +168,7 @@ class _UserDashboardState extends State<UserDashboard> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => UserSkillLevel(
+                    builder: (context) => SkillLevelList(
                       UserID: uid,
                     ),
                   ),
@@ -177,7 +182,13 @@ class _UserDashboardState extends State<UserDashboard> {
               ),
               onTap: () async {
                 await FirebaseAuth.instance.signOut();
-                Navigator.pushReplacementNamed(context, '/signin');
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return SignInScreen();
+                    },
+                  ),
+                );
               },
               title: Text(
                 'Logout',

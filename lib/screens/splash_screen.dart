@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:ppmt/screens/signin_screen.dart';
 
 class Splash extends StatefulWidget {
-  const Splash({Key? key}) : super(key: key);
+  Splash({super.key});
 
   @override
   State<Splash> createState() => _SplashState();
@@ -92,7 +92,7 @@ class _SplashState extends State<Splash> {
   void initializeFirstLaunch() {
     Timer(
       Duration(seconds: 5),
-          () {
+      () {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) {

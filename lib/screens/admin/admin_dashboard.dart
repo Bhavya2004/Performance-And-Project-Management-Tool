@@ -3,7 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
+import 'package:ppmt/screens/admin/master/master.dart';
 import 'package:ppmt/screens/admin/members/add_user.dart';
+import 'package:ppmt/screens/admin/members/users.dart';
+import 'package:ppmt/screens/admin/message/message.dart';
+import 'package:ppmt/screens/admin/projects/projects.dart';
+import 'package:ppmt/screens/signin_screen.dart';
 
 class AdminDashboard extends StatefulWidget {
   AdminDashboard({Key? key});
@@ -13,7 +18,6 @@ class AdminDashboard extends StatefulWidget {
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
-  int currentPageIndex = 0;
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   @override
@@ -44,7 +48,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           padding: EdgeInsets.all(0),
           children: [
             FutureBuilder(
-              future: _getUserDisplayName(),
+              future: getUserDisplayName(),
               builder: (context, AsyncSnapshot<String> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return DrawerHeader(
@@ -147,7 +151,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ),
               ),
               onTap: () {
-                Navigator.of(context).pushNamed('/message');
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return Message();
+                    },
+                  ),
+                );
               },
             ),
             ListTile(
@@ -162,7 +172,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ),
               ),
               onTap: () {
-                Navigator.of(context).pushNamed('/master');
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return Master();
+                    },
+                  ),
+                );
               },
             ),
             ListTile(
@@ -177,7 +193,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ),
               ),
               onTap: () {
-                Navigator.of(context).pushNamed('/projects');
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return Projects();
+                    },
+                  ),
+                );
               },
             ),
             ListTile(
@@ -192,7 +214,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ),
               ),
               onTap: () {
-                Navigator.of(context).pushNamed('/user_list');
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return Users();
+                    },
+                  ),
+                );
               },
             ),
             ListTile(
@@ -202,7 +230,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ),
               onTap: () async {
                 await FirebaseAuth.instance.signOut();
-                Navigator.pushReplacementNamed(context, '/signin');
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return SignInScreen();
+                    },
+                  ),
+                );
               },
               title: Text(
                 'Logout',
@@ -217,7 +251,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Future<String> _getUserDisplayName() async {
+  Future<String> getUserDisplayName() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
