@@ -6,8 +6,6 @@ import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/components/textfield.dart';
 import 'package:ppmt/constants/color.dart';
-import 'package:ppmt/screens/admin/admin_dashboard.dart';
-import 'package:ppmt/screens/user/user_dashboard.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
-import 'package:ppmt/screens/signin_screen.dart';
 
 class Splash extends StatefulWidget {
   Splash({super.key});
