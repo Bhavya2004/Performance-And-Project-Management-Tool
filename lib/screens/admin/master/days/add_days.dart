@@ -1,21 +1,22 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ppmt/components/button.dart';
-import 'package:ppmt/components/snackbar.dart';
-import 'package:ppmt/constants/color.dart';
+import "package:cloud_firestore/cloud_firestore.dart";
+import "package:flutter/cupertino.dart";
+import "package:flutter/material.dart";
+import "package:ppmt/components/button.dart";
+import "package:ppmt/components/snackbar.dart";
+import "package:ppmt/constants/color.dart";
+import "package:ppmt/constants/generate_id.dart";
 
 class AddDays extends StatefulWidget {
   final QueryDocumentSnapshot<Object?>? document;
+  final String daysID;
 
-  const AddDays({Key? key, this.document}) : super(key: key);
+  AddDays({Key? key, this.document, required this.daysID}) : super(key: key);
 
   @override
   State<AddDays> createState() => _AddDaysState();
 }
 
 class _AddDaysState extends State<AddDays> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<Map<String, dynamic>> complexityList = [];
   List<Map<String, dynamic>> levelsList = [];
   List<List<TextEditingController>> controllersList = [];
@@ -28,11 +29,48 @@ class _AddDaysState extends State<AddDays> {
     fetchComplexity();
     fetchLevels();
     fetchSkills();
+
+    if (widget.document != null && widget.document!["skillID"] != null) {
+      String skillID = widget.document!["skillID"];
+      getSkillName(skillID).then((skillName) {
+        setState(() {
+          selectedSkill = skillName;
+        });
+      }).catchError((error) {});
+    } else {
+      selectedSkill = null;
+    }
+  }
+
+  Future<String> getSkillName(String skillID) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('skills')
+          .where('skillID', isEqualTo: skillID)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final skillSnapshot = querySnapshot.docs.first;
+        final skillData = skillSnapshot.data() as Map<String, dynamic>?;
+
+        if (skillData != null) {
+          return skillData['skillName'];
+        } else {
+          throw ('Document data is null or empty');
+        }
+      } else {
+        throw ('Skill with ID $skillID not found.');
+      }
+    } catch (e) {
+      throw ('Error fetching skill details: $e');
+    }
   }
 
   void fetchComplexity() async {
-    QuerySnapshot complexitySnapshot =
-    await _firestore.collection('complexity').get();
+    QuerySnapshot complexitySnapshot = await FirebaseFirestore.instance
+        .collection("complexity")
+        .orderBy("complexityID")
+        .get();
 
     setState(() {
       complexityList = complexitySnapshot.docs
@@ -45,35 +83,28 @@ class _AddDaysState extends State<AddDays> {
   void resetControllers() {
     for (List<TextEditingController> controllers in controllersList) {
       for (TextEditingController controller in controllers) {
-        controller.text = '0';
+        controller.text = "0";
       }
     }
   }
 
   void fetchSkills() async {
-    QuerySnapshot skillsSnapshot = await _firestore
-        .collection('skills')
-        .where('isDisabled', isEqualTo: false)
+    QuerySnapshot skillsSnapshot = await FirebaseFirestore.instance
+        .collection("skills")
+        .where("isDisabled", isEqualTo: false)
         .get();
-    skills = skillsSnapshot.docs
-        .map((doc) => doc['skillName'])
-        .toList()
-        .cast<String>();
 
     setState(() {
-      // If the selected skill is disabled, reset it
-      if (!skills.contains(selectedSkill)) {
-        selectedSkill = null;
-        showSnackBar(
-          context: context,
-          message: "The selected skill has been disabled. Unable to edit.",
-        );
-      }
+      skills =
+          skillsSnapshot.docs.map((doc) => doc["skillName"] as String).toList();
     });
   }
 
   void fetchLevels() async {
-    QuerySnapshot levelsSnapshot = await _firestore.collection('levels').get();
+    QuerySnapshot levelsSnapshot = await FirebaseFirestore.instance
+        .collection("levels")
+        .orderBy("levelID")
+        .get();
 
     setState(() {
       levelsList = levelsSnapshot.docs
@@ -95,21 +126,25 @@ class _AddDaysState extends State<AddDays> {
     }
 
     if (widget.document != null) {
-      selectedSkill = widget.document!['skillName'] as String?;
+      selectedSkill = widget.document!["skillID"] as String?;
       Map<String, dynamic>? daysData =
-      widget.document!['days'] as Map<String, dynamic>?;
+          widget.document!["days"] as Map<String, dynamic>?;
 
       if (daysData != null) {
         for (int i = 0; i < levelsList.length; i++) {
           Map<String, dynamic>? levelData =
-          daysData[levelsList[i]['levelName']] as Map<String, dynamic>?;
+              daysData[levelsList[i]["levelID"]] as Map<String, dynamic>?;
 
           if (levelData != null) {
             for (int j = 0; j < complexityList.length; j++) {
               String complexityName =
-              complexityList[j]['complexityName'] as String;
-              int days = levelData[complexityName] as int? ?? 0;
-              controllersList[i][j].text = days.toString();
+                  complexityList[j]["complexityName"] as String;
+              var value = levelData[complexityName];
+              if (value is int || value is double) {
+                controllersList[i][j].text = value.toString();
+              } else {
+                controllersList[i][j].text = "0";
+              }
             }
           }
         }
@@ -117,16 +152,77 @@ class _AddDaysState extends State<AddDays> {
     }
   }
 
-  void addOrUpdateDays() async {
+  void addDays(Map<String, dynamic> daysData) async {
+    int lastDaysID =
+        await getLastID(collectionName: "days", primaryKey: "daysID");
+    int newDaysID = lastDaysID + 1;
+
+    DocumentSnapshot skillSnapshot = await FirebaseFirestore.instance
+        .collection("skills")
+        .where("skillName", isEqualTo: selectedSkill)
+        .limit(1)
+        .get()
+        .then((snapshot) => snapshot.docs.first);
+    String skillID = skillSnapshot["skillID"];
+
+    await FirebaseFirestore.instance.collection("days").add({
+      "daysID": newDaysID.toString(),
+      "skillID": skillID,
+      "days": daysData,
+    });
+    showSnackBar(
+        context: context, message: "Days Calculation Added Successfully");
+    Navigator.pop(context);
+  }
+
+  void updateDays(String daysID, Map<String, dynamic> daysData) async {
+    try {
+      DocumentSnapshot skillSnapshot = await FirebaseFirestore.instance
+          .collection("skills")
+          .where("skillName", isEqualTo: selectedSkill)
+          .limit(1)
+          .get()
+          .then((snapshot) => snapshot.docs.first);
+      String skillID = skillSnapshot["skillID"];
+
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection("days")
+          .where("daysID", isEqualTo: widget.daysID)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final daysSnapShot = querySnapshot.docs.first;
+        final skillData = daysSnapShot.data() as Map<String, dynamic>?;
+
+        if (skillData != null) {
+          await daysSnapShot.reference.update({
+            "skillID": skillID,
+            "days": daysData,
+          });
+        } else {
+          throw ("Document data is null or empty");
+        }
+      } else {
+        throw ("Level with ID ${widget.daysID} not found.");
+      }
+    } catch (e) {
+      throw ("Error updating skill details: $e");
+    }
+
+    showSnackBar(
+        context: context, message: "Days Calculation Updated Successfully");
+    Navigator.pop(context);
+  }
+
+  void submit() async {
     if (selectedSkill == null) {
       showSnackBar(context: context, message: "Please select a skill first!");
       return;
     }
 
-    // Check if the selected skill already exists in the database
-    QuerySnapshot skillSnapshot = await _firestore
-        .collection('days')
-        .where('skillName', isEqualTo: selectedSkill)
+    QuerySnapshot skillSnapshot = await FirebaseFirestore.instance
+        .collection("days")
+        .where("skillName", isEqualTo: selectedSkill)
         .get();
 
     if (widget.document == null && skillSnapshot.docs.isNotEmpty) {
@@ -144,49 +240,18 @@ class _AddDaysState extends State<AddDays> {
 
       for (int j = 0; j < complexityList.length; j++) {
         int days = int.tryParse(controllersList[i][j].text) ?? 0;
-        levelData[complexityList[j]['complexityName'] as String] = days;
+        levelData[complexityList[j]["complexityName"] as String] = days;
       }
 
-      daysData[levelsList[i]['levelName'] as String] = levelData;
-    }
-
-    // Check if the selected skill is disabled
-    if (widget.document != null) {
-      QuerySnapshot disabledSkillSnapshot = await _firestore
-          .collection('skills')
-          .where('skillName', isEqualTo: selectedSkill)
-          .where('isDisabled', isEqualTo: true)
-          .get();
-
-      if (disabledSkillSnapshot.docs.isNotEmpty) {
-        showSnackBar(
-          context: context,
-          message: "The selected skill has been disabled. Unable to edit.",
-        );
-        return;
-      }
+      daysData[levelsList[i]["levelID"] as String] = levelData;
     }
 
     if (widget.document != null) {
-      await _firestore.collection('days').doc(widget.document!.id).update({
-        'skillName': selectedSkill,
-        'days': daysData,
-      });
-      showSnackBar(
-          context: context, message: "Days Calculation Updated Successfully");
+      updateDays(widget.document!.id, daysData);
     } else {
-      await _firestore.collection('days').add({
-        'skillName': selectedSkill,
-        'days': daysData,
-      });
-      showSnackBar(
-          context: context, message: "Days Calculation Added Successfully");
+      addDays(daysData);
     }
-
-    Navigator.pop(context);
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -197,7 +262,7 @@ class _AddDaysState extends State<AddDays> {
         ),
         backgroundColor: kAppBarColor,
         title: Text(
-          widget.document != null ? 'Edit Days' : 'Add Days',
+          widget.document != null ? "Edit Days" : "Add Days",
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -228,7 +293,7 @@ class _AddDaysState extends State<AddDays> {
                 },
                 value: selectedSkill,
                 decoration: InputDecoration(
-                  labelText: 'Skill',
+                  labelText: "Skill",
                   labelStyle: TextStyle(
                     color: kAppBarColor,
                   ),
@@ -248,7 +313,7 @@ class _AddDaysState extends State<AddDays> {
                       TableCell(
                         child: Center(
                           child: Text(
-                            complexity['complexityName'] as String,
+                            complexity["complexityName"] as String,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
@@ -264,7 +329,7 @@ class _AddDaysState extends State<AddDays> {
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                            levelsList[i]['levelName'] as String,
+                            levelsList[i]["levelName"] as String,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
@@ -288,9 +353,9 @@ class _AddDaysState extends State<AddDays> {
             SizedBox(height: 16.0),
             button(
               backgroundColor: CupertinoColors.black,
-              buttonName: widget.document != null ? 'Update Days' : 'Add Days',
+              buttonName: widget.document != null ? "Update Days" : "Add Days",
               textColor: CupertinoColors.white,
-              onPressed: addOrUpdateDays,
+              onPressed: submit,
             ),
           ],
         ),

@@ -65,8 +65,14 @@ Map<String, Widget Function(BuildContext)> route = {
         taskTypeName: "",
       ),
   '/task_type_list': (context) => TaskTypeList(),
-  "/add_days": (context) => AddDays(),
-  '/days_list': (context) => DaysList(),
-  "/add_point": (context) => AddPoint(),
+  "/add_days": (context) => AddDays(
+        daysID: "",
+      ),
+  '/days_list': (context) => DaysList(
+  
+  ),
+  "/add_point": (context) => AddPoint(
+        pointsID: "",
+      ),
   '/point_list': (context) => PointList(),
 };

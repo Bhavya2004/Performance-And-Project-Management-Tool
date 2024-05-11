@@ -1,10 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:ppmt/components/button.dart';
-import 'package:ppmt/components/snackbar.dart';
-import 'package:ppmt/components/textfield.dart';
-import 'package:ppmt/constants/color.dart';
+import "package:cloud_firestore/cloud_firestore.dart";
+import "package:flutter/cupertino.dart";
+import "package:flutter/material.dart";
+import "package:ppmt/components/button.dart";
+import "package:ppmt/components/snackbar.dart";
+import "package:ppmt/components/textfield.dart";
+import "package:ppmt/constants/color.dart";
+import "package:ppmt/constants/generate_id.dart";
 
 class AddComplexity extends StatefulWidget {
   const AddComplexity({Key? key}) : super(key: key);
@@ -14,7 +15,7 @@ class AddComplexity extends StatefulWidget {
 }
 
 class AddComplexityState extends State<AddComplexity> {
-  final _formKey = GlobalKey<FormState>();
+  final formKey = GlobalKey<FormState>();
   TextEditingController complexityController = TextEditingController();
 
   @override
@@ -31,7 +32,7 @@ class AddComplexityState extends State<AddComplexity> {
         ),
         backgroundColor: kAppBarColor,
         title: Text(
-          'Add Complexity',
+          "Add Complexity",
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -41,7 +42,7 @@ class AddComplexityState extends State<AddComplexity> {
       ),
       body: SingleChildScrollView(
         child: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -49,12 +50,12 @@ class AddComplexityState extends State<AddComplexity> {
                 controller: complexityController,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a Complexity name';
+                    return "Complexity Name Required";
                   }
                   return null;
                 },
                 keyboardType: TextInputType.name,
-                labelText: 'Complexity Name',
+                labelText: "Complexity Name",
                 obscureText: false,
               ),
               SizedBox(
@@ -63,7 +64,7 @@ class AddComplexityState extends State<AddComplexity> {
               Padding(
                 padding: const EdgeInsets.all(15),
                 child: button(
-                  buttonName: 'Add Complexity',
+                  buttonName: "Add Complexity",
                   onPressed: submit,
                   backgroundColor: CupertinoColors.black,
                   textColor: CupertinoColors.white,
@@ -77,10 +78,11 @@ class AddComplexityState extends State<AddComplexity> {
   }
 
   Future<void> submit() async {
-    if (_formKey.currentState!.validate()) {
+    if (formKey.currentState!.validate()) {
       try {
-        await AddComplexity();
-        showSnackBar(context: context, message: "Complexity Added Successfully");
+        await addComplexity();
+        showSnackBar(
+            context: context, message: "Complexity Added Successfully");
         Navigator.of(context).pop();
       } catch (e) {
         showSnackBar(context: context, message: "Error: $e");
@@ -88,13 +90,17 @@ class AddComplexityState extends State<AddComplexity> {
     }
   }
 
-  Future<void> AddComplexity() async {
+  Future<void> addComplexity() async {
     try {
-      await FirebaseFirestore.instance.collection('complexity').add({
-        'complexityName': complexityController.text.trim(),
+      int lastComplexityID = await getLastID(
+          collectionName: "complexity", primaryKey: "complexityID");
+      int newComplexityID = lastComplexityID + 1;
+      await FirebaseFirestore.instance.collection("complexity").add({
+        "complexityID": newComplexityID.toString(),
+        "complexityName": complexityController.text.trim(),
       });
     } catch (e) {
-      throw ('Error adding complexity: $e',);
+      throw ("Error adding complexity: $e",);
     }
   }
 }
