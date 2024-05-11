@@ -13,6 +13,7 @@ class AddUser extends StatefulWidget {
   final String? surname;
   final String? phoneNumber;
   final String? email;
+  final String? address;
   final bool isUpdating;
   final bool isProfileEditing;
 
@@ -22,6 +23,7 @@ class AddUser extends StatefulWidget {
     this.surname,
     this.phoneNumber,
     this.email,
+    this.address,
     this.isUpdating = false,
     this.isProfileEditing = false,
   }) : super(key: key);
@@ -36,6 +38,7 @@ class _AddUserState extends State<AddUser> {
   final surNameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneNumberController = TextEditingController();
+  final addressController = TextEditingController();
   bool _isMounted = false;
 
   @override
@@ -46,6 +49,8 @@ class _AddUserState extends State<AddUser> {
     surNameController.text = widget.surname ?? '';
     emailController.text = widget.email ?? '';
     phoneNumberController.text = widget.phoneNumber ?? '';
+    addressController.text =
+        widget.address ?? ''; // Initialize controller with widget value
   }
 
   @override
@@ -131,6 +136,15 @@ class _AddUserState extends State<AddUser> {
                     },
                     keyboardType: TextInputType.emailAddress,
                     labelText: 'Email',
+                  ),
+                  textFormField(
+                    controller: addressController,
+                    obscureText: false,
+                    validator: (value) {
+                      return null;
+                    },
+                    keyboardType: TextInputType.streetAddress,
+                    labelText: 'Address(Optional)',
                   ),
                   SizedBox(
                     height: 20,
@@ -244,6 +258,7 @@ class _AddUserState extends State<AddUser> {
       'surname': surname,
       'phoneNumber': phoneNumber,
       'isDisabled': isDisabled,
+      'address': addressController.text,
     });
   }
 
@@ -256,6 +271,7 @@ class _AddUserState extends State<AddUser> {
       'name': nameController.text,
       'surname': surNameController.text,
       'phoneNumber': phoneNumberController.text,
+      'address': addressController.text,
     });
   }
 }
