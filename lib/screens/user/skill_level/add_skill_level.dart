@@ -22,8 +22,8 @@ class AssignSkillLevel extends StatefulWidget {
 
 class _AssignSkillLevelState extends State<AssignSkillLevel> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  List<String> _skills = [];
-  List<String> _levels = [];
+  Map<String, String> _skills = {};
+  Map<String, String> _levels = {};
   String? _selectedSkill;
   String? _selectedLevel;
 
@@ -40,19 +40,15 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
         .collection('skills')
         .where('isDisabled', isEqualTo: false)
         .get();
-    _skills = skillsSnapshot.docs
-        .map((doc) => doc['skillName'])
-        .toList()
-        .cast<String>();
+    _skills = Map.fromEntries(skillsSnapshot.docs
+        .map((doc) => MapEntry(doc['skillName'], doc['skillID'])));
 
     QuerySnapshot levelsSnapshot = await _firestore
         .collection('levels')
         .where('isDisabled', isEqualTo: false)
         .get();
-    _levels = levelsSnapshot.docs
-        .map((doc) => doc['levelName'])
-        .toList()
-        .cast<String>();
+    _levels = Map.fromEntries(levelsSnapshot.docs
+        .map((doc) => MapEntry(doc['levelName'], doc['levelID'])));
 
     setState(() {});
   }
@@ -63,8 +59,8 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
       QuerySnapshot existingRecords = await _firestore
           .collection('userSkillsLevels')
           .where('userId', isEqualTo: widget.userId)
-          .where('skillName', isEqualTo: _selectedSkill)
-          .where('levelName', isEqualTo: _selectedLevel)
+          .where('skillId', isEqualTo: _skills[_selectedSkill])
+          .where('levelId', isEqualTo: _levels[_selectedLevel])
           .get();
 
       if (existingRecords.docs.isNotEmpty) {
@@ -76,7 +72,7 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
         QuerySnapshot userSkillLevel = await _firestore
             .collection('userSkillsLevels')
             .where('userId', isEqualTo: widget.userId)
-            .where('skillName', isEqualTo: _selectedSkill)
+            .where('skillId', isEqualTo: _skills[_selectedSkill])
             .get();
 
         if (userSkillLevel.docs.isNotEmpty) {
@@ -86,7 +82,7 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
                 .collection('userSkillsLevels')
                 .doc(documentId)
                 .update({
-              'levelName': _selectedLevel,
+              'levelId': _levels[_selectedLevel],
             });
             print('Record updated successfully');
           } catch (e) {
@@ -96,8 +92,8 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
           print('Adding new record');
           await _firestore.collection('userSkillsLevels').add({
             'userId': widget.userId,
-            'skillName': _selectedSkill,
-            'levelName': _selectedLevel,
+            'skillId': _skills[_selectedSkill],
+            'levelId': _levels[_selectedLevel],
             'isDisabled': false,
           });
         }
@@ -136,7 +132,7 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
               margin: EdgeInsets.all(10),
               child: DropdownButtonFormField(
                 style: TextStyle(color: kAppBarColor),
-                items: _skills.map((skill) {
+                items: _skills.keys.map((skill) {
                   return DropdownMenuItem(
                     value: skill,
                     child: Text(skill),
@@ -165,7 +161,7 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
                     "Select Level",
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
-                  ..._levels.map((level) {
+                  ..._levels.keys.map((level) {
                     return RadioListTile(
                       activeColor: kAppBarColor,
                       title: Text(level),
