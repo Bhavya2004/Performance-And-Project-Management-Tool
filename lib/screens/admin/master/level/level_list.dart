@@ -5,15 +5,13 @@ import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/master/level/add_level.dart';
 
 class LevelListPage extends StatelessWidget {
-  final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-
   LevelListPage({Key? key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder<QuerySnapshot>(
-        stream: firebaseFirestore
+        stream: FirebaseFirestore.instance
             .collection('levels')
             .orderBy('levelID')
             .snapshots(),

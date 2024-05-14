@@ -141,11 +141,12 @@ class _UserDashboardState extends State<UserDashboard> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => AddUser(
+                        userID: uid,
+                        address: userSnapshot['address'],
                         email: userSnapshot['email'],
                         name: userSnapshot['name'],
                         surname: userSnapshot['surname'],
                         phoneNumber: userSnapshot['phoneNumber'],
-                        isProfileEditing: true,
                       ),
                     ),
                   );
@@ -164,15 +165,17 @@ class _UserDashboardState extends State<UserDashboard> {
                 ),
               ),
               onTap: () async {
-                String uid = FirebaseAuth.instance.currentUser!.uid;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SkillLevelList(
-                      UserID: uid,
+                String? userID = await getCurrentUserUserID();
+                if (userID != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SkillLevelList(
+                        userID: userID,
+                      ),
                     ),
-                  ),
-                );
+                  );
+                }
               },
             ),
             ListTile(
@@ -220,5 +223,19 @@ class _UserDashboardState extends State<UserDashboard> {
       }
     }
     return "User";
+  }
+
+  Future<String?> getCurrentUserUserID() async {
+    User user = FirebaseAuth.instance.currentUser!;
+    DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+        .instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+    if (snapshot.exists) {
+      return snapshot.data()!["userID"];
+    }
+
+    return null;
   }
 }

@@ -31,6 +31,8 @@ Map<String, Widget Function(BuildContext)> route = {
   '/admin_dashboard': (context) => AdminDashboard(),
   '/user_dashboard': (context) => UserDashboard(),
   "/add_user": (context) => AddUser(
+        userID: "",
+        address: "",
         name: "",
         surname: "",
         phoneNumber: "",
@@ -49,14 +51,15 @@ Map<String, Widget Function(BuildContext)> route = {
   "/skill_list": (context) => SkillListPage(),
   "/add_skill": (context) => AddSkill(skillName: "", skillID: ""),
   '/add_skill_level': (context) => AssignSkillLevel(
-        userId: "",
+        userSkillsLevelsID: "",
+        userID: "",
       ),
   '/skill_level': (context) => SkillLevel(
         userID: "",
         userName: "",
       ),
   '/user_skill_level': (context) => SkillLevelList(
-        UserID: "",
+        userID: "",
       ),
   "/add_complexity": (context) => AddComplexity(),
   '/complexity_list': (context) => ComplexityListPage(),
@@ -68,9 +71,7 @@ Map<String, Widget Function(BuildContext)> route = {
   "/add_days": (context) => AddDays(
         daysID: "",
       ),
-  '/days_list': (context) => DaysList(
-  
-  ),
+  '/days_list': (context) => DaysList(),
   "/add_point": (context) => AddPoint(
         pointsID: "",
       ),

@@ -1,19 +1,22 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/constants/color.dart';
+import 'package:ppmt/constants/generate_id.dart';
 
 class AssignSkillLevel extends StatefulWidget {
-  final String userId;
+  final String userID;
+  final String userSkillsLevelsID;
   final String? selectedSkill;
   final String? selectedLevel;
 
   AssignSkillLevel({
-    required this.userId,
+    required this.userID,
     this.selectedSkill,
     this.selectedLevel,
+    required this.userSkillsLevelsID,
   });
 
   @override
@@ -21,46 +24,84 @@ class AssignSkillLevel extends StatefulWidget {
 }
 
 class _AssignSkillLevelState extends State<AssignSkillLevel> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  Map<String, String> _skills = {};
-  Map<String, String> _levels = {};
-  String? _selectedSkill;
-  String? _selectedLevel;
+  Map<String, String> skills = {};
+  Map<String, String> levels = {};
+  String? selectedSkill;
+  String? selectedLevel;
 
   @override
   void initState() {
     super.initState();
     fetchSkillsAndLevels();
-    _selectedSkill = widget.selectedSkill;
-    _selectedLevel = widget.selectedLevel;
+    selectedSkill = widget.selectedSkill;
+    selectedLevel = widget.selectedLevel;
   }
 
   void fetchSkillsAndLevels() async {
-    QuerySnapshot skillsSnapshot = await _firestore
+    QuerySnapshot skillsSnapshot = await FirebaseFirestore.instance
         .collection('skills')
         .where('isDisabled', isEqualTo: false)
         .get();
-    _skills = Map.fromEntries(skillsSnapshot.docs
+    skills = Map.fromEntries(skillsSnapshot.docs
         .map((doc) => MapEntry(doc['skillName'], doc['skillID'])));
 
-    QuerySnapshot levelsSnapshot = await _firestore
+    QuerySnapshot levelsSnapshot = await FirebaseFirestore.instance
         .collection('levels')
         .where('isDisabled', isEqualTo: false)
         .get();
-    _levels = Map.fromEntries(levelsSnapshot.docs
+    levels = Map.fromEntries(levelsSnapshot.docs
         .map((doc) => MapEntry(doc['levelName'], doc['levelID'])));
 
     setState(() {});
   }
 
-  void assignSkillAndLevel() async {
-    if (_selectedSkill != null && _selectedLevel != null) {
-      // Check if the combination already exists
-      QuerySnapshot existingRecords = await _firestore
+  Future<void> addSkillAndLevel() async {
+    int lastUserSkillsLevelsID = await getLastID(
+        collectionName: "userSkillsLevels", primaryKey: "userSkillsLevelsID");
+    int newUserSkillsLevelsID = lastUserSkillsLevelsID + 1;
+    await FirebaseFirestore.instance.collection('userSkillsLevels').add({
+      "userSkillsLevelsID": newUserSkillsLevelsID.toString(),
+      'userID': widget.userID,
+      'skillID': skills[selectedSkill!],
+      'levelID': levels[selectedLevel!],
+      'isDisabled': false,
+    });
+  }
+
+  Future<void> updateSkillAndLevel() async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
           .collection('userSkillsLevels')
-          .where('userId', isEqualTo: widget.userId)
-          .where('skillId', isEqualTo: _skills[_selectedSkill])
-          .where('levelId', isEqualTo: _levels[_selectedLevel])
+          .where('userSkillsLevelsID', isEqualTo: widget.userSkillsLevelsID)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final userSkillsLevelsSnapshot = querySnapshot.docs.first;
+        final userSkillsLevelsData =
+            userSkillsLevelsSnapshot.data() as Map<String, dynamic>?;
+
+        if (userSkillsLevelsData != null) {
+          await userSkillsLevelsSnapshot.reference.update({
+            'levelID': levels[selectedLevel!],
+          });
+        } else {
+          throw ('Document data is null or empty');
+        }
+      } else {
+        throw ('Skill - Level with ID ${widget.userSkillsLevelsID} not found.');
+      }
+    } catch (e) {
+      throw ('Error updating Skill - level details: $e');
+    }
+  }
+
+  void submit() async {
+    if (selectedSkill != null && selectedLevel != null) {
+      QuerySnapshot existingRecords = await FirebaseFirestore.instance
+          .collection('userSkillsLevels')
+          .where('userID', isEqualTo: widget.userID)
+          .where('skillID', isEqualTo: skills[selectedSkill!])
+          .where('levelID', isEqualTo: levels[selectedLevel!])
           .get();
 
       if (existingRecords.docs.isNotEmpty) {
@@ -69,40 +110,22 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
           context: context,
         );
       } else {
-        QuerySnapshot userSkillLevel = await _firestore
-            .collection('userSkillsLevels')
-            .where('userId', isEqualTo: widget.userId)
-            .where('skillId', isEqualTo: _skills[_selectedSkill])
-            .get();
-
-        if (userSkillLevel.docs.isNotEmpty) {
-          String documentId = userSkillLevel.docs.first.id;
-          try {
-            await _firestore
-                .collection('userSkillsLevels')
-                .doc(documentId)
-                .update({
-              'levelId': _levels[_selectedLevel],
-            });
-            print('Record updated successfully');
-          } catch (e) {
-            print('Error updating record: $e');
+        try {
+          if (widget.userSkillsLevelsID != "") {
+            await updateSkillAndLevel();
+            showSnackBar(
+                context: context,
+                message: "Skill - Level Updated Successfully");
+          } else {
+            await addSkillAndLevel();
+            showSnackBar(
+                context: context,
+                message: "Skill - Level Updated Successfully");
           }
-        } else {
-          print('Adding new record');
-          await _firestore.collection('userSkillsLevels').add({
-            'userId': widget.userId,
-            'skillId': _skills[_selectedSkill],
-            'levelId': _levels[_selectedLevel],
-            'isDisabled': false,
-          });
+          Navigator.of(context).pop();
+        } catch (e) {
+          showSnackBar(context: context, message: "Error: $e");
         }
-
-        Navigator.pop(context);
-        showSnackBar(
-          message: 'Skill and level assigned successfully',
-          context: context,
-        );
       }
     }
   }
@@ -132,7 +155,7 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
               margin: EdgeInsets.all(10),
               child: DropdownButtonFormField(
                 style: TextStyle(color: kAppBarColor),
-                items: _skills.keys.map((skill) {
+                items: skills.keys.map((skill) {
                   return DropdownMenuItem(
                     value: skill,
                     child: Text(skill),
@@ -140,10 +163,10 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
-                    _selectedSkill = value as String?;
+                    selectedSkill = value as String?;
                   });
                 },
-                value: _selectedSkill,
+                value: selectedSkill,
                 decoration: InputDecoration(
                   labelText: 'Skill',
                   labelStyle: TextStyle(
@@ -161,15 +184,15 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
                     "Select Level",
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
-                  ..._levels.keys.map((level) {
+                  ...levels.keys.map((level) {
                     return RadioListTile(
                       activeColor: kAppBarColor,
                       title: Text(level),
                       value: level,
-                      groupValue: _selectedLevel,
+                      groupValue: selectedLevel,
                       onChanged: (value) {
                         setState(() {
-                          _selectedLevel = value;
+                          selectedLevel = value;
                         });
                       },
                     );
@@ -178,8 +201,8 @@ class _AssignSkillLevelState extends State<AssignSkillLevel> {
               ),
             ),
             button(
-              onPressed: _selectedSkill != null && _selectedLevel != null
-                  ? assignSkillAndLevel
+              onPressed: selectedSkill != null && selectedLevel != null
+                  ? submit
                   : null,
               buttonName: 'Assign Skill and Level',
               backgroundColor: CupertinoColors.black,

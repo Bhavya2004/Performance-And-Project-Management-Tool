@@ -128,11 +128,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => AddUser(
+                        address: userSnapshot['address'],
+                        userID: uid,
                         email: userSnapshot['email'],
                         name: userSnapshot['name'],
                         surname: userSnapshot['surname'],
                         phoneNumber: userSnapshot['phoneNumber'],
-                        isProfileEditing: true,
                       ),
                     ),
                   );

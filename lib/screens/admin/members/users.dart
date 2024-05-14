@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
+import 'package:ppmt/screens/admin/master/level/add_level.dart';
 import 'package:ppmt/screens/admin/members/skill_level.dart';
 
 class Users extends StatefulWidget {
@@ -13,8 +14,6 @@ class Users extends StatefulWidget {
 }
 
 class _UsersState extends State<Users> {
-  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,43 +32,37 @@ class _UsersState extends State<Users> {
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _firebaseFirestore
+        stream: FirebaseFirestore.instance
             .collection('users')
             .where('role', isEqualTo: 'user')
             .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Error: ${snapshot.error}',
-              ),
-            );
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (!snapshot.hasData) {
             return Center(
               child: CupertinoActivityIndicator(
                 color: kAppBarColor,
               ),
             );
           }
-
-          final activeItems = <QueryDocumentSnapshot>[];
-          final disabledItems = <QueryDocumentSnapshot>[];
-
-          for (var doc in snapshot.data!.docs) {
-            final data = doc.data() as Map<String, dynamic>;
-            if (data['isDisabled'] == true) {
-              disabledItems.add(doc);
-            } else {
-              activeItems.add(doc);
-            }
-          }
-
-          return ListView(
-            children: [
-              ..._buildUserList(activeItems, false),
-              ..._buildUserList(disabledItems, true),
-            ],
+          List<DocumentSnapshot> sortedDocs = snapshot.data!.docs.toList()
+            ..sort((a, b) {
+              bool aDisabled = a['isDisabled'] ?? false;
+              bool bDisabled = b['isDisabled'] ?? false;
+              if (aDisabled && !bDisabled) {
+                return 1;
+              } else if (!aDisabled && bDisabled) {
+                return -1;
+              } else {
+                return 0;
+              }
+            });
+          return ListView.builder(
+            itemCount: sortedDocs.length,
+            itemBuilder: (context, index) {
+              DocumentSnapshot doc = sortedDocs[index];
+              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+              return buildCard(context, doc, data);
+            },
           );
         },
       ),
@@ -87,23 +80,10 @@ class _UsersState extends State<Users> {
     );
   }
 
-  List<Widget> _buildUserList(
-      List<QueryDocumentSnapshot> items, bool isDisabled) {
-    return items.map((doc) {
-      final data = _getUserData(doc);
-      return _buildUserListItem(doc, data, isDisabled);
-    }).toList();
-  }
-
-  Map<String, dynamic> _getUserData(QueryDocumentSnapshot document) {
-    return document.data() as Map<String, dynamic>;
-  }
-
-  Widget _buildUserListItem(QueryDocumentSnapshot document,
-      Map<String, dynamic> data, bool isDisabled) {
+  Widget buildCard(BuildContext context, DocumentSnapshot document,
+      Map<String, dynamic> data) {
     final userName = data['name'] as String;
     final firstCharacter = userName.isNotEmpty ? userName[0].toUpperCase() : '';
-
     final random = Random();
     final randomColor = Color.fromARGB(
       255,
@@ -114,10 +94,9 @@ class _UsersState extends State<Users> {
 
     final textColor =
         randomColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
-
     return Card(
       margin: const EdgeInsets.all(5),
-      color: isDisabled ? Colors.grey[400] : null,
+      color: data["isDisabled"] ? Colors.grey[400] : null,
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: randomColor,
@@ -140,7 +119,26 @@ class _UsersState extends State<Users> {
             Row(
               children: [
                 IconButton(
-                  icon: isDisabled
+                  icon: data["isDisabled"]
+                      ? SizedBox()
+                      : Icon(
+                          CupertinoIcons.info_circle_fill,
+                          color: kAppBarColor,
+                        ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SkillLevel(
+                          userID: data['userID'],
+                          userName: data['name'],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: data["isDisabled"]
                       ? Icon(
                           Icons.visibility_off,
                           color: kDeleteColor,
@@ -150,23 +148,8 @@ class _UsersState extends State<Users> {
                           color: kAppBarColor,
                         ),
                   onPressed: () async {
-                    await _updateUserStatus(document.id, !isDisabled);
-                  },
-                ),
-                IconButton(
-                  icon: Icon(
-                    CupertinoIcons.info_circle_fill,
-                    color: kAppBarColor,
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SkillLevel(
-                          userID: document.id,
-                          userName: userName,
-                        ),
-                      ),
+                    await updateUserStatus(
+                      userID: data["userID"].toString(),
                     );
                   },
                 ),
@@ -178,12 +161,28 @@ class _UsersState extends State<Users> {
     );
   }
 
-  Future<void> _updateUserStatus(String userId, bool status) async {
+  Future<void> updateUserStatus({required String userID}) async {
     try {
-      await _firebaseFirestore
+      final querySnapshot = await FirebaseFirestore.instance
           .collection('users')
-          .doc(userId)
-          .update({'isDisabled': status});
-    } catch (e) {}
+          .where('userID', isEqualTo: userID)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final userSnapshot = querySnapshot.docs.first;
+        final userData = userSnapshot.data() as Map<String, dynamic>?;
+
+        if (userData != null) {
+          await userSnapshot.reference
+              .update({'isDisabled': !(userData['isDisabled'] ?? false)});
+        } else {
+          throw ('Document data is null or empty');
+        }
+      } else {
+        throw ('Level with ID $userID not found.');
+      }
+    } catch (e) {
+      throw ('Error updating user details: $e');
+    }
   }
 }

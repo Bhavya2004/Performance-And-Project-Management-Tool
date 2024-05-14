@@ -7,59 +7,59 @@ import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/components/textfield.dart';
 import 'package:ppmt/constants/color.dart';
+import 'package:ppmt/constants/generate_id.dart';
 
 class AddUser extends StatefulWidget {
-  final String? name;
-  final String? surname;
-  final String? phoneNumber;
-  final String? email;
-  final String? address;
-  final bool isUpdating;
-  final bool isProfileEditing;
+  final String userID;
+  final String name;
+  final String surname;
+  final String phoneNumber;
+  final String email;
+  final String address;
 
   const AddUser({
-    Key? key,
-    this.name,
-    this.surname,
-    this.phoneNumber,
-    this.email,
-    this.address,
-    this.isUpdating = false,
-    this.isProfileEditing = false,
-  }) : super(key: key);
+    super.key,
+    required this.userID,
+    required this.name,
+    required this.surname,
+    required this.phoneNumber,
+    required this.email,
+    required this.address,
+  });
 
   @override
   State<AddUser> createState() => _AddUserState();
 }
 
 class _AddUserState extends State<AddUser> {
-  final _formSignInKey = GlobalKey<FormState>();
+  final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final surNameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneNumberController = TextEditingController();
   final addressController = TextEditingController();
-  bool _isMounted = false;
+  bool isMounted = false;
 
   @override
   void initState() {
     super.initState();
-    _isMounted = true;
-    nameController.text = widget.name ?? '';
-    surNameController.text = widget.surname ?? '';
-    emailController.text = widget.email ?? '';
-    phoneNumberController.text = widget.phoneNumber ?? '';
-    addressController.text =
-        widget.address ?? ''; // Initialize controller with widget value
+    isMounted = true;
+    nameController.text = widget.name;
+    surNameController.text = widget.surname;
+    emailController.text = widget.email;
+    phoneNumberController.text = widget.phoneNumber;
+    addressController.text = widget.address;
   }
 
   @override
   void dispose() {
-    _isMounted = false;
+    isMounted = false;
     nameController.dispose();
     surNameController.dispose();
     phoneNumberController.dispose();
     emailController.dispose();
+    phoneNumberController.dispose();
+    addressController.dispose();
     super.dispose();
   }
 
@@ -72,7 +72,7 @@ class _AddUserState extends State<AddUser> {
         ),
         backgroundColor: kAppBarColor,
         title: Text(
-          widget.isProfileEditing ? "Update User" : "Add User",
+          widget.userID != "" ? "Update User" : "Add User",
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -84,7 +84,7 @@ class _AddUserState extends State<AddUser> {
         child: Column(
           children: [
             Form(
-              key: _formSignInKey,
+              key: formKey,
               child: Column(
                 children: [
                   textFormField(
@@ -126,7 +126,7 @@ class _AddUserState extends State<AddUser> {
                   ),
                   textFormField(
                     controller: emailController,
-                    enabled: !widget.isProfileEditing,
+                    enabled: widget.userID == "",
                     obscureText: false,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -144,7 +144,7 @@ class _AddUserState extends State<AddUser> {
                       return null;
                     },
                     keyboardType: TextInputType.streetAddress,
-                    labelText: 'Address(Optional)',
+                    labelText: 'Address (Optional)',
                   ),
                   SizedBox(
                     height: 20,
@@ -152,12 +152,11 @@ class _AddUserState extends State<AddUser> {
                   Padding(
                     padding: const EdgeInsets.all(15),
                     child: button(
-                      buttonName:
-                          widget.isProfileEditing ? "Update User" : "Add User",
-                      backgroundColor: CupertinoColors.black,
-                      textColor: CupertinoColors.white,
-                      onPressed: widget.isProfileEditing ? editUser : addUser,
-                    ),
+                        buttonName:
+                            widget.userID != "" ? "Update User" : "Add User",
+                        backgroundColor: CupertinoColors.black,
+                        textColor: CupertinoColors.white,
+                        onPressed: submit),
                   ),
                 ],
               ),
@@ -168,58 +167,94 @@ class _AddUserState extends State<AddUser> {
     );
   }
 
-  Future<void> addUser() async {
-    if (_formSignInKey.currentState!.validate()) {
+  Future<void> submit() async {
+    if (formKey.currentState!.validate()) {
       try {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: emailController.text,
-          password: generateRandomPassword(),
-        );
-
-        await sendTemporaryPassword(
-          emailController.text,
-          generateRandomPassword(),
-        );
-
-        await postDetailsToFirestore(
-          name: nameController.text.toString(),
-          surname: surNameController.text.toString(),
-          phoneNumber: phoneNumberController.text,
-          email: emailController.text.toString(),
-          role: "user",
-          isDisabled: false,
-        );
-
-        showSnackBar(
-            context: context,
-            message:
-                "User registered successfully. Check your email for the password.");
-
-        Navigator.of(context).pop();
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'email-already-in-use') {
+        if (widget.userID != "") {
+          await updateUser();
           showSnackBar(
+              context: context, message: "User Details Updated Successfully");
+        } else {
+          try {
+            await addUser();
+            showSnackBar(
               context: context,
-              message: "The account already exists for that email");
+              message:
+                  "User registered successfully. Check your email for the password.",
+            );
+          } on FirebaseAuthException catch (e) {
+            if (e.code == 'email-already-in-use') {
+              showSnackBar(
+                context: context,
+                message: "The account already exists for that email",
+              );
+              return;
+            }
+          } catch (e) {
+            showSnackBar(
+              context: context,
+              message: "An error occurred. Please try again later",
+            );
+            return;
+          }
         }
+        // Refresh data here, for example by calling a function from the parent widget
+        // Assuming there's a function refreshData in the parent widget
+        // refreshData();
+        // Close the current screen and pop back to the previous one
+        Navigator.of(context).pop();
       } catch (e) {
-        showSnackBar(
-            context: context,
-            message: "An error occurred. Please try again later");
+        showSnackBar(context: context, message: "Error: $e");
       }
     }
   }
 
-  Future<void> editUser() async {
-    if (_formSignInKey.currentState!.validate()) {
-      try {
-        await updateDetails();
-        Navigator.of(context).pop();
-      } catch (e) {
-        showSnackBar(
-            context: context,
-            message: "An error occurred. Please try again later");
-      }
+  Future<void> addUser() async {
+    try {
+      int lastUserID =
+          await getLastID(collectionName: "users", primaryKey: "userID");
+      int newUserID = lastUserID + 1;
+
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text,
+        password: generateRandomPassword(),
+      );
+
+      await sendTemporaryPassword(
+        emailController.text,
+        generateRandomPassword(),
+      );
+
+      final user = FirebaseAuth.instance.currentUser;
+      final ref = FirebaseFirestore.instance.collection('users');
+      ref.doc(user!.uid).set({
+        "userID": newUserID.toString(),
+        'email': emailController.text,
+        'role': "user",
+        'name': nameController.text.toString(),
+        'surname': surNameController.text.toString(),
+        'phoneNumber': phoneNumberController.text,
+        'isDisabled': false,
+        'address': addressController.text,
+      });
+    } catch (e) {
+      throw ('Error adding level: $e');
+    }
+  }
+
+  Future<void> updateUser() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      final ref = FirebaseFirestore.instance.collection('users');
+      await ref.doc(user!.uid).update({
+        'email': emailController.text,
+        'name': nameController.text,
+        'surname': surNameController.text,
+        'phoneNumber': phoneNumberController.text,
+        'address': addressController.text,
+      });
+    } catch (e) {
+      throw ('Error updating user details: $e');
     }
   }
 
@@ -239,39 +274,5 @@ class _AddUserState extends State<AddUser> {
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
     } catch (e) {}
-  }
-
-  postDetailsToFirestore(
-      {required String email,
-      required String role,
-      required String name,
-      required String surname,
-      required String phoneNumber,
-      required bool isDisabled}) async {
-    final firebaseFirestore = FirebaseFirestore.instance;
-    final user = FirebaseAuth.instance.currentUser;
-    final ref = firebaseFirestore.collection('users');
-    ref.doc(user!.uid).set({
-      'email': emailController.text,
-      'role': role,
-      'name': name,
-      'surname': surname,
-      'phoneNumber': phoneNumber,
-      'isDisabled': isDisabled,
-      'address': addressController.text,
-    });
-  }
-
-  Future<void> updateDetails() async {
-    final firebaseFirestore = FirebaseFirestore.instance;
-    final user = FirebaseAuth.instance.currentUser;
-    final ref = firebaseFirestore.collection('users');
-    await ref.doc(user!.uid).update({
-      'email': emailController.text,
-      'name': nameController.text,
-      'surname': surNameController.text,
-      'phoneNumber': phoneNumberController.text,
-      'address': addressController.text,
-    });
   }
 }

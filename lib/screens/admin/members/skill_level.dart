@@ -14,7 +14,7 @@ class SkillLevel extends StatefulWidget {
 }
 
 class _SkillLevelState extends State<SkillLevel> {
-  List<DocumentSnapshot> _userSkillsLevels = [];
+  List<DocumentSnapshot> userSkillsLevels = [];
 
   @override
   void initState() {
@@ -32,7 +32,7 @@ class _SkillLevelState extends State<SkillLevel> {
           .where('isDisabled', isEqualTo: false)
           .get();
       setState(() {
-        _userSkillsLevels = userSkillsLevelsSnapshot.docs;
+        userSkillsLevels = userSkillsLevelsSnapshot.docs;
       });
     } catch (e) {}
   }
@@ -106,10 +106,9 @@ class _SkillLevelState extends State<SkillLevel> {
             ListView.builder(
               shrinkWrap: true,
               scrollDirection: Axis.vertical,
-              itemCount: _userSkillsLevels.length,
+              itemCount: userSkillsLevels.length,
               itemBuilder: (context, index) {
-                return buildTile(
-                    _userSkillsLevels[index], true);
+                return buildTile(userSkillsLevels[index], true);
               },
             ),
           ],
