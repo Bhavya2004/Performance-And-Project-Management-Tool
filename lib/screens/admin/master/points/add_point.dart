@@ -18,66 +18,76 @@ class AddPoint extends StatefulWidget {
 
 class _AddPointState extends State<AddPoint> {
   List<Map<String, dynamic>> complexityList = [];
-  List<Map<String, dynamic>> taskTypesList = [];
+  List<Map<String, dynamic>> skillList = [];
   List<List<TextEditingController>> controllersList = [];
-  List<String> skills = [];
-  String? selectedSkill;
+  List<String> taskTypes = [];
+  String? selectedTaskType;
 
   @override
   void initState() {
     super.initState();
     fetchComplexity();
-    fetchtaskTypes();
     fetchSkills();
+    fetchTaskTypes();
 
-    if (widget.document != null && widget.document!["skillID"] != null) {
-      String skillID = widget.document!["skillID"];
-      getSkillName(skillID).then((skillName) {
+    if (widget.document != null && widget.document!["taskTypeID"] != null) {
+      String taskTypeID = widget.document!["taskTypeID"];
+      getTaskTypeName(taskTypeID).then((taskTypeName) {
         setState(() {
-          selectedSkill = skillName;
+          selectedTaskType = taskTypeName;
         });
-      }).catchError((error) {});
+      }).catchError((error) {
+        print("Error fetching task type name: $error");
+        showSnackBar(
+            context: context, message: "Error fetching task type name");
+      });
     } else {
-      selectedSkill = null;
+      selectedTaskType = null;
     }
   }
 
-  Future<String> getSkillName(String skillID) async {
+  Future<String> getTaskTypeName(String taskTypeID) async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
-          .collection('skills')
-          .where('skillID', isEqualTo: skillID)
+          .collection('taskType')
+          .where('taskTypeID', isEqualTo: taskTypeID)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        final skillSnapshot = querySnapshot.docs.first;
-        final skillData = skillSnapshot.data() as Map<String, dynamic>?;
+        final taskTypeSnapshot = querySnapshot.docs.first;
+        final taskTypeData = taskTypeSnapshot.data() as Map<String, dynamic>?;
 
-        if (skillData != null) {
-          return skillData['skillName'];
+        if (taskTypeData != null) {
+          return taskTypeData['taskTypeName'];
         } else {
           throw ('Document data is null or empty');
         }
       } else {
-        throw ('Skill with ID $skillID not found.');
+        throw ('Skill with ID $taskTypeID not found.');
       }
     } catch (e) {
-      throw ('Error fetching skill details: $e');
+      throw ('Error fetching Task Type details: $e');
     }
   }
 
   void fetchComplexity() async {
-    QuerySnapshot complexitySnapshot = await FirebaseFirestore.instance
-        .collection("complexity")
-        .orderBy("complexityID")
-        .get();
+    try {
+      QuerySnapshot complexitySnapshot = await FirebaseFirestore.instance
+          .collection("complexity")
+          .orderBy("complexityID")
+          .get();
 
-    setState(() {
-      complexityList = complexitySnapshot.docs
-          .map((doc) => doc.data() as Map<String, dynamic>)
-          .toList();
-    });
-    initializeControllers();
+      setState(() {
+        complexityList = complexitySnapshot.docs
+            .map((doc) => doc.data() as Map<String, dynamic>)
+            .toList();
+      });
+
+      initializeControllers();
+    } catch (e) {
+      print("Error fetching complexity: $e");
+      showSnackBar(context: context, message: "Error fetching complexity");
+    }
   }
 
   void resetControllers() {
@@ -89,35 +99,50 @@ class _AddPointState extends State<AddPoint> {
   }
 
   void fetchSkills() async {
-    QuerySnapshot skillsSnapshot = await FirebaseFirestore.instance
-        .collection("skills")
-        .where("isDisabled", isEqualTo: false)
-        .get();
+    try {
+      QuerySnapshot skillsSnapshot = await FirebaseFirestore.instance
+          .collection("skills")
+          .where("isDisabled", isEqualTo: false)
+          .get();
 
-    setState(() {
-      skills =
-          skillsSnapshot.docs.map((doc) => doc["skillName"] as String).toList();
-    });
+      setState(() {
+        skillList = skillsSnapshot.docs
+            .where((doc) => doc['isDisabled'] == false)
+            .map((doc) => doc.data() as Map<String, dynamic>)
+            .toList();
+      });
+    } catch (e) {
+      print("Error fetching skills: $e");
+      showSnackBar(context: context, message: "Error fetching skills");
+    }
   }
 
-  void fetchtaskTypes() async {
-    QuerySnapshot taskTypesSnapshot = await FirebaseFirestore.instance
-        .collection("taskType")
-        .orderBy("taskTypeID")
-        .get();
+  void fetchTaskTypes() async {
+    try {
+      QuerySnapshot taskTypesSnapshot = await FirebaseFirestore.instance
+          .collection("taskType")
+          .where("isDisabled", isEqualTo: false)
+          .get();
 
-    setState(() {
-      taskTypesList = taskTypesSnapshot.docs
-          .where((doc) => doc['isDisabled'] == false)
-          .map((doc) => doc.data() as Map<String, dynamic>)
-          .toList();
-    });
-    initializeControllers();
+      setState(() {
+        taskTypes = taskTypesSnapshot.docs
+            .map((doc) => doc["taskTypeName"] as String)
+            .toList();
+      });
+
+      initializeControllers();
+    } catch (e) {
+      print("Error fetching task types: $e");
+      showSnackBar(context: context, message: "Error fetching task types");
+    }
   }
 
   void initializeControllers() {
+    if (skillList.isEmpty || complexityList.isEmpty) {
+      return; // Do nothing if either list is empty
+    }
     controllersList.clear();
-    for (int i = 0; i < taskTypesList.length; i++) {
+    for (int i = 0; i < skillList.length; i++) {
       List<TextEditingController> controllers = [];
       for (int j = 0; j < complexityList.length; j++) {
         controllers.add(TextEditingController());
@@ -126,15 +151,14 @@ class _AddPointState extends State<AddPoint> {
     }
 
     if (widget.document != null) {
-      selectedSkill = widget.document!["skillID"] as String?;
+      selectedTaskType = widget.document!["taskTypeID"] as String?;
       Map<String, dynamic>? pointsData =
           widget.document!["points"] as Map<String, dynamic>?;
 
       if (pointsData != null) {
-        for (int i = 0; i < taskTypesList.length; i++) {
+        for (int i = 0; i < skillList.length; i++) {
           Map<String, dynamic>? taskTypeData =
-              pointsData[taskTypesList[i]["taskTypeID"]]
-                  as Map<String, dynamic>?;
+              pointsData[skillList[i]["skillID"]] as Map<String, dynamic>?;
 
           if (taskTypeData != null) {
             for (int j = 0; j < complexityList.length; j++) {
@@ -154,37 +178,42 @@ class _AddPointState extends State<AddPoint> {
   }
 
   void addPoints(Map<String, dynamic> pointsData) async {
-    int lastPointsID =
-        await getLastID(collectionName: "points", primaryKey: "pointsID");
-    int newpointsID = lastPointsID + 1;
+    try {
+      int lastPointsID =
+          await getLastID(collectionName: "points", primaryKey: "pointsID");
+      int newpointsID = lastPointsID + 1;
 
-    DocumentSnapshot skillSnapshot = await FirebaseFirestore.instance
-        .collection("skills")
-        .where("skillName", isEqualTo: selectedSkill)
-        .limit(1)
-        .get()
-        .then((snapshot) => snapshot.docs.first);
-    String skillID = skillSnapshot["skillID"];
+      DocumentSnapshot taskTypeSnapshot = await FirebaseFirestore.instance
+          .collection("taskType")
+          .where("taskTypeName", isEqualTo: selectedTaskType)
+          .limit(1)
+          .get()
+          .then((snapshot) => snapshot.docs.first);
+      String taskTypeID = taskTypeSnapshot["taskTypeID"];
 
-    await FirebaseFirestore.instance.collection("points").add({
-      "pointsID": newpointsID.toString(),
-      "skillID": skillID,
-      "points": pointsData,
-    });
-    showSnackBar(
-        context: context, message: "Points Calculation Added Successfully");
-    Navigator.pop(context);
+      await FirebaseFirestore.instance.collection("points").add({
+        "pointsID": newpointsID.toString(),
+        "taskTypeID": taskTypeID,
+        "points": pointsData,
+      });
+      showSnackBar(
+          context: context, message: "Points Calculation Added Successfully");
+      Navigator.pop(context);
+    } catch (e) {
+      print("Error adding points: $e");
+      showSnackBar(context: context, message: "Error adding points: $e");
+    }
   }
 
   void updatePoints(String pointsID, Map<String, dynamic> pointsData) async {
     try {
-      DocumentSnapshot skillSnapshot = await FirebaseFirestore.instance
-          .collection("skills")
-          .where("skillName", isEqualTo: selectedSkill)
+      DocumentSnapshot taskTypeSnapshot = await FirebaseFirestore.instance
+          .collection("taskType")
+          .where("taskTypeName", isEqualTo: selectedTaskType)
           .limit(1)
           .get()
           .then((snapshot) => snapshot.docs.first);
-      String skillID = skillSnapshot["skillID"];
+      String taskTypeID = taskTypeSnapshot["taskTypeID"];
 
       final querySnapshot = await FirebaseFirestore.instance
           .collection("points")
@@ -193,11 +222,11 @@ class _AddPointState extends State<AddPoint> {
 
       if (querySnapshot.docs.isNotEmpty) {
         final pointsSnapShot = querySnapshot.docs.first;
-        final skillData = pointsSnapShot.data() as Map<String, dynamic>?;
+        final taskTypeData = pointsSnapShot.data() as Map<String, dynamic>?;
 
-        if (skillData != null) {
+        if (taskTypeData != null) {
           await pointsSnapShot.reference.update({
-            "skillID": skillID,
+            "taskTypeID": taskTypeID,
             "points": pointsData,
           });
         } else {
@@ -207,36 +236,38 @@ class _AddPointState extends State<AddPoint> {
         throw ("taskType with ID ${widget.pointsID} not found.");
       }
     } catch (e) {
-      throw ("Error updating skill details: $e");
+      print("Error updating points: $e");
+      showSnackBar(context: context, message: "Error updating points: $e");
     }
 
     showSnackBar(
-        context: context, message: "points Calculation Updated Successfully");
+        context: context, message: "Points Calculation Updated Successfully");
     Navigator.pop(context);
   }
 
   void submit() async {
-    if (selectedSkill == null) {
-      showSnackBar(context: context, message: "Please select a skill first!");
+    if (selectedTaskType == null) {
+      showSnackBar(
+          context: context, message: "Please select a Task Type first!");
       return;
     }
 
     QuerySnapshot skillSnapshot = await FirebaseFirestore.instance
         .collection("points")
-        .where("skillName", isEqualTo: selectedSkill)
+        .where("taskTypeName", isEqualTo: selectedTaskType)
         .get();
 
     if (widget.document == null && skillSnapshot.docs.isNotEmpty) {
       showSnackBar(
         context: context,
-        message: "Skill '$selectedSkill' already exists!",
+        message: "Skill '$selectedTaskType' already exists!",
       );
       return;
     }
 
     Map<String, dynamic> pointsData = {};
 
-    for (int i = 0; i < taskTypesList.length; i++) {
+    for (int i = 0; i < skillList.length; i++) {
       Map<String, dynamic> taskTypeData = {};
 
       for (int j = 0; j < complexityList.length; j++) {
@@ -244,7 +275,7 @@ class _AddPointState extends State<AddPoint> {
         taskTypeData[complexityList[j]["complexityName"] as String] = points;
       }
 
-      pointsData[taskTypesList[i]["taskTypeID"] as String] = taskTypeData;
+      pointsData[skillList[i]["skillID"] as String] = taskTypeData;
     }
 
     if (widget.document != null) {
@@ -256,6 +287,11 @@ class _AddPointState extends State<AddPoint> {
 
   @override
   Widget build(BuildContext context) {
+    if (complexityList.isEmpty || skillList.isEmpty) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(
@@ -280,21 +316,21 @@ class _AddPointState extends State<AddPoint> {
               margin: EdgeInsets.all(10),
               child: DropdownButtonFormField(
                 style: TextStyle(color: kAppBarColor),
-                items: skills.map((skill) {
+                items: taskTypes.map((taskType) {
                   return DropdownMenuItem(
-                    value: skill,
-                    child: Text(skill),
+                    value: taskType,
+                    child: Text(taskType),
                   );
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
-                    selectedSkill = value as String?;
+                    selectedTaskType = value as String?;
                     resetControllers();
                   });
                 },
-                value: selectedSkill,
+                value: selectedTaskType,
                 decoration: InputDecoration(
-                  labelText: "Skill",
+                  labelText: "Task Type",
                   labelStyle: TextStyle(
                     color: kAppBarColor,
                   ),
@@ -323,14 +359,14 @@ class _AddPointState extends State<AddPoint> {
                       ),
                   ],
                 ),
-                for (int i = 0; i < taskTypesList.length; i++)
+                for (int i = 0; i < skillList.length; i++)
                   TableRow(
                     children: [
                       TableCell(
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                            taskTypesList[i]["taskTypeName"] as String,
+                            skillList[i]["skillName"] as String,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
