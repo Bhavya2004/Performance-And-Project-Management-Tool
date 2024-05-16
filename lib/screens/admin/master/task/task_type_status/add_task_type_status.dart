@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/components/textfield.dart';
@@ -37,11 +37,11 @@ class _AddTaskTypeStatusState extends State<AddTaskTypeStatus> {
     taskTypeStatusController.text = widget.taskTypeStatusName;
     currentColor = widget.taskTypeStatusColor != null
         ? Color(
-            int.parse(
-              widget.taskTypeStatusColor!,
-              radix: 16,
-            ),
-          )
+      int.parse(
+        widget.taskTypeStatusColor!,
+        radix: 16,
+      ),
+    )
         : Colors.green;
   }
 
@@ -96,13 +96,21 @@ class _AddTaskTypeStatusState extends State<AddTaskTypeStatus> {
                               title: const Text('Pick a color!'),
                               content: SingleChildScrollView(
                                 child: ColorPicker(
-                                  pickerColor: currentColor,
+                                  color: currentColor,
                                   onColorChanged: (Color color) {
                                     setState(() {
                                       currentColor = color;
                                     });
                                   },
-                                  showLabel: true,
+                                  width: 44,
+                                  height: 44,
+                                  borderRadius: 22,
+                                  heading: Text(
+                                    'Select color',
+                                  ),
+                                  subheading: Text(
+                                    'Select color shade',
+                                  ),
                                 ),
                               ),
                               actions: <Widget>[
@@ -157,7 +165,7 @@ class _AddTaskTypeStatusState extends State<AddTaskTypeStatus> {
   Future<void> addTaskTypeStatus() async {
     try {
       CollectionReference ref =
-          FirebaseFirestore.instance.collection('taskTypeStatus');
+      FirebaseFirestore.instance.collection('taskTypeStatus');
 
       int lastTaskTypeStatusID = await getLastID(
         collectionName: "taskTypeStatus",
