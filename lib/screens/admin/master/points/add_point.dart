@@ -83,7 +83,7 @@ class _AddPointState extends State<AddPoint> {
             .toList();
       });
 
-      initializeControllers();
+      initializeControllersIfNeeded();
     } catch (e) {
       print("Error fetching complexity: $e");
       showSnackBar(context: context, message: "Error fetching complexity");
@@ -111,6 +111,8 @@ class _AddPointState extends State<AddPoint> {
             .map((doc) => doc.data() as Map<String, dynamic>)
             .toList();
       });
+
+      initializeControllersIfNeeded();
     } catch (e) {
       print("Error fetching skills: $e");
       showSnackBar(context: context, message: "Error fetching skills");
@@ -130,17 +132,20 @@ class _AddPointState extends State<AddPoint> {
             .toList();
       });
 
-      initializeControllers();
+      initializeControllersIfNeeded();
     } catch (e) {
       print("Error fetching task types: $e");
       showSnackBar(context: context, message: "Error fetching task types");
     }
   }
 
-  void initializeControllers() {
-    if (skillList.isEmpty || complexityList.isEmpty) {
-      return; // Do nothing if either list is empty
+  void initializeControllersIfNeeded() {
+    if (skillList.isNotEmpty && complexityList.isNotEmpty) {
+      initializeControllers();
     }
+  }
+
+  void initializeControllers() {
     controllersList.clear();
     for (int i = 0; i < skillList.length; i++) {
       List<TextEditingController> controllers = [];
@@ -153,17 +158,17 @@ class _AddPointState extends State<AddPoint> {
     if (widget.document != null) {
       selectedTaskType = widget.document!["taskTypeID"] as String?;
       Map<String, dynamic>? pointsData =
-          widget.document!["points"] as Map<String, dynamic>?;
+      widget.document!["points"] as Map<String, dynamic>?;
 
       if (pointsData != null) {
         for (int i = 0; i < skillList.length; i++) {
           Map<String, dynamic>? taskTypeData =
-              pointsData[skillList[i]["skillID"]] as Map<String, dynamic>?;
+          pointsData[skillList[i]["skillID"]] as Map<String, dynamic>?;
 
           if (taskTypeData != null) {
             for (int j = 0; j < complexityList.length; j++) {
               String complexityName =
-                  complexityList[j]["complexityName"] as String;
+              complexityList[j]["complexityName"] as String;
               var value = taskTypeData[complexityName];
               if (value is int || value is double) {
                 controllersList[i][j].text = value.toString();
@@ -180,7 +185,7 @@ class _AddPointState extends State<AddPoint> {
   void addPoints(Map<String, dynamic> pointsData) async {
     try {
       int lastPointsID =
-          await getLastID(collectionName: "points", primaryKey: "pointsID");
+      await getLastID(collectionName: "points", primaryKey: "pointsID");
       int newpointsID = lastPointsID + 1;
 
       DocumentSnapshot taskTypeSnapshot = await FirebaseFirestore.instance
@@ -391,7 +396,7 @@ class _AddPointState extends State<AddPoint> {
             button(
               backgroundColor: CupertinoColors.black,
               buttonName:
-                  widget.document != null ? "Update points" : "Add points",
+              widget.document != null ? "Update points" : "Add points",
               textColor: CupertinoColors.white,
               onPressed: submit,
             ),
