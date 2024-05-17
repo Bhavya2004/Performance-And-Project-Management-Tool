@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
+import 'package:intl/intl.dart';
 
 class AddProject extends StatefulWidget {
   final bool isUpdating;
@@ -42,6 +43,8 @@ class _AddProjectState extends State<AddProject> {
   final totalBonusController = TextEditingController();
   late String creator;
   late String status;
+  DateTime? startDate;
+  DateTime? endDate;
 
   @override
   void initState() {
@@ -53,6 +56,12 @@ class _AddProjectState extends State<AddProject> {
     creator =
         widget.creator ?? 'admin@gmail.com'; // Replace with actual admin email
     status = widget.status ?? 'ToDo';
+    startDate = widget.startDate != null
+        ? DateFormat('yyyy-MM-dd').parse(widget.startDate!)
+        : null;
+    endDate = widget.endDate != null
+        ? DateFormat('yyyy-MM-dd').parse(widget.endDate!)
+        : null;
   }
 
   @override
@@ -78,8 +87,11 @@ class _AddProjectState extends State<AddProject> {
         'Project_ID': projectId,
         'Name': projectNameController.text,
         'Description': descriptionController.text,
-        'Start Date': '',
-        'End Date': '',
+        'Start Date': startDate != null
+            ? DateFormat('yyyy-MM-dd').format(startDate!)
+            : '',
+        'End Date':
+            endDate != null ? DateFormat('yyyy-MM-dd').format(endDate!) : '',
         'Status': status,
         'Creator_ID': creator,
         'Management_Points': managementPointsController.text,
@@ -114,10 +126,11 @@ class _AddProjectState extends State<AddProject> {
   }
 
   Future<void> kickOffProject() async {
-    // Implement kick off functionality
-    // Display a dialog to select team lead and update project status to InProgress
     final ref = FirebaseFirestore.instance.collection('Projects');
-    await ref.doc(widget.projectId).update({'Status': 'InProgress'});
+    await ref.doc(widget.projectId).update({
+      'Status': 'InProgress',
+      'Start Date': DateFormat('yyyy-MM-dd').format(DateTime.now())
+    });
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Project kicked off successfully'),
     ));
@@ -125,11 +138,11 @@ class _AddProjectState extends State<AddProject> {
   }
 
   Future<void> markAsComplete() async {
-    // Implement mark as complete functionality
-    // Update project status to Completed
-    // Navigate back to projects list
     final ref = FirebaseFirestore.instance.collection('Projects');
-    await ref.doc(widget.projectId).update({'Status': 'Completed'});
+    await ref.doc(widget.projectId).update({
+      'Status': 'Completed',
+      'End Date': DateFormat('yyyy-MM-dd').format(DateTime.now())
+    });
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Project marked as complete'),
     ));
@@ -138,6 +151,7 @@ class _AddProjectState extends State<AddProject> {
 
   @override
   Widget build(BuildContext context) {
+    bool isInProgress = status == 'InProgress';
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(
@@ -163,6 +177,7 @@ class _AddProjectState extends State<AddProject> {
                 controller: projectNameController,
                 decoration: InputDecoration(labelText: 'Project Name'),
                 maxLength: 30,
+                enabled: !isInProgress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a project name';
@@ -175,6 +190,7 @@ class _AddProjectState extends State<AddProject> {
                 decoration: InputDecoration(labelText: 'Description'),
                 maxLength: 1000,
                 maxLines: 5,
+                enabled: !isInProgress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a description';
@@ -182,13 +198,49 @@ class _AddProjectState extends State<AddProject> {
                   return null;
                 },
               ),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Start Date'),
+              ListTile(
+                title: Text('Start Date'),
+                subtitle: Text(startDate != null
+                    ? DateFormat('yyyy-MM-dd').format(startDate!)
+                    : ''),
                 enabled: false,
+                onTap: !isInProgress
+                    ? () async {
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+                        if (date != null) {
+                          setState(() {
+                            startDate = date;
+                          });
+                        }
+                      }
+                    : null,
               ),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'End Date'),
+              ListTile(
+                title: Text('End Date'),
+                subtitle: Text(endDate != null
+                    ? DateFormat('yyyy-MM-dd').format(endDate!)
+                    : ''),
                 enabled: false,
+                onTap: !isInProgress
+                    ? () async {
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+                        if (date != null) {
+                          setState(() {
+                            endDate = date;
+                          });
+                        }
+                      }
+                    : null,
               ),
               TextFormField(
                 decoration: InputDecoration(labelText: 'Creator'),
@@ -204,6 +256,7 @@ class _AddProjectState extends State<AddProject> {
                 controller: managementPointsController,
                 decoration: InputDecoration(labelText: 'Management Points'),
                 keyboardType: TextInputType.number,
+                enabled: !isInProgress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter management points';
@@ -215,6 +268,7 @@ class _AddProjectState extends State<AddProject> {
                 controller: totalBonusController,
                 decoration: InputDecoration(labelText: 'Total Bonus'),
                 keyboardType: TextInputType.number,
+                enabled: !isInProgress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter total bonus';
@@ -230,10 +284,10 @@ class _AddProjectState extends State<AddProject> {
               if (widget.isUpdating && status == 'ToDo')
                 ElevatedButton(
                   onPressed: deleteProject,
-                  child: Text('Delete if still in ToDo State'),
+                  child: Text('Delete'),
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 ),
-              if (widget.isUpdating)
+              if (widget.isUpdating && !isInProgress)
                 ElevatedButton(
                   onPressed: kickOffProject,
                   child: Text('Kick Off'),

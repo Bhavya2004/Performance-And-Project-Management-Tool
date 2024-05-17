@@ -8,13 +8,22 @@ class Project {
   final String id;
   final String name;
   final String status;
-  // final String description;
-  // final String managementPoints;
-  // final String totalBonus;
+  final String description;
+  final String managementPoints;
+  final String totalBonus;
+  // final String? startDate;
+  // final String? endDate;
 
-  Project({required this.id, required this.name, required this.status
-      //, required this.description, required this.managementPoints, required this.totalBonus
-      });
+  Project({
+    required this.id,
+    required this.name,
+    required this.status,
+    required this.description,
+    required this.managementPoints,
+    required this.totalBonus,
+    // this.startDate,
+    // this.endDate,
+  });
 }
 
 class Projects extends StatefulWidget {
@@ -46,9 +55,15 @@ class _ProjectsState extends State<Projects> {
         id: doc.id,
         name: doc['Name'],
         status: doc['Status'],
-        // description: doc['Description'],
-        // managementPoints: doc['ManagementPoints'],
-        // totalBonus: doc['TotalBonus'],
+        description: doc['Description'],
+        managementPoints: doc['Management_Points'],
+        totalBonus: doc['Total_Bonus'],
+        // startDate: doc['Start Date'] != null
+        //     ? (doc['Start Date'] as Timestamp).toDate().toString()
+        //     : null,
+        // endDate: doc['End Date']! != null
+        //     ? (doc['End Date'] as Timestamp).toDate().toString()
+        //     : null,
       );
     }).toList();
 
@@ -82,44 +97,53 @@ class _ProjectsState extends State<Projects> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Column(
-                  children: [
-                    Checkbox(
-                      value: _showToDo,
-                      onChanged: (value) {
-                        setState(() {
-                          _showToDo = value!;
-                        });
-                      },
-                    ),
-                    Text('ToDo', style: TextStyle(fontSize: 12)),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                  child: Column(
+                    children: [
+                      Checkbox(
+                        value: _showToDo,
+                        onChanged: (value) {
+                          setState(() {
+                            _showToDo = value!;
+                          });
+                        },
+                      ),
+                      Text('ToDo', style: TextStyle(fontSize: 12)),
+                    ],
+                  ),
                 ),
-                Column(
-                  children: [
-                    Checkbox(
-                      value: _showInProgress,
-                      onChanged: (value) {
-                        setState(() {
-                          _showInProgress = value!;
-                        });
-                      },
-                    ),
-                    Text('InProgress', style: TextStyle(fontSize: 12)),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                  child: Column(
+                    children: [
+                      Checkbox(
+                        value: _showInProgress,
+                        onChanged: (value) {
+                          setState(() {
+                            _showInProgress = value!;
+                          });
+                        },
+                      ),
+                      Text('InProgress', style: TextStyle(fontSize: 12)),
+                    ],
+                  ),
                 ),
-                Column(
-                  children: [
-                    Checkbox(
-                      value: _showCompleted,
-                      onChanged: (value) {
-                        setState(() {
-                          _showCompleted = value!;
-                        });
-                      },
-                    ),
-                    Text('Completed', style: TextStyle(fontSize: 12)),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                  child: Column(
+                    children: [
+                      Checkbox(
+                        value: _showCompleted,
+                        onChanged: (value) {
+                          setState(() {
+                            _showCompleted = value!;
+                          });
+                        },
+                      ),
+                      Text('Completed', style: TextStyle(fontSize: 12)),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -222,10 +246,12 @@ class _ProjectsState extends State<Projects> {
           isUpdating: true,
           projectId: project.id,
           projectName: project.name,
-          // description: project.description, // Pass description
+          description: project.description,
           status: project.status,
-          // managementPoints: project.managementPoints, // Pass management points
-          // totalBonus: project.totalBonus, // Pass total bonus
+          managementPoints: project.managementPoints,
+          totalBonus: project.totalBonus,
+          // startDate: project.startDate,
+          // endDate: project.endDate,
         ),
       ),
     ).then((_) {
