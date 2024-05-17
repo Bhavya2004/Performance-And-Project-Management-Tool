@@ -22,19 +22,40 @@ class _AddPointState extends State<AddPoint> {
   List<List<TextEditingController>> controllersList = [];
   List<String> taskTypes = [];
   String? selectedTaskType;
+  int selectedRadio = -1;
+  bool isLoading = true; // Added isLoading variable
 
   @override
   void initState() {
     super.initState();
     fetchComplexity();
     fetchSkills();
-    fetchTaskTypes();
+    fetchTaskTypes().then((_) {
+      setState(() {
+        isLoading = false; // Set isLoading to false when data is fetched
+      });
+    });
 
-    if (widget.document != null && widget.document!["taskTypeID"] != null) {
+    if (widget.document != null && widget.document!["taskTypeID"] != null)  {
       String taskTypeID = widget.document!["taskTypeID"];
       getTaskTypeName(taskTypeID).then((taskTypeName) {
         setState(() {
           selectedTaskType = taskTypeName;
+
+          // Set the selected radio value based on the 'type' field in document
+          Map<String, dynamic>? pointsData = widget.document!["points"];
+          if (pointsData != null && pointsData["type"] != null) {
+            Map<String, dynamic> type = pointsData["type"];
+            if (type["assignee"] == true) {
+              selectedRadio = 1;
+            } else if (type["creator"] == true) {
+              selectedRadio = 2;
+            } else if (type["dueTo"] == true) {
+              selectedRadio = 3;
+            } else {
+              selectedRadio = -1; // Default value if none selected
+            }
+          }
         });
       }).catchError((error) {
         print("Error fetching task type name: $error");
@@ -46,7 +67,10 @@ class _AddPointState extends State<AddPoint> {
     }
   }
 
+
   Future<String> getTaskTypeName(String taskTypeID) async {
+    print(taskTypeID);
+    print("called");
     try {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('taskType')
@@ -55,9 +79,11 @@ class _AddPointState extends State<AddPoint> {
 
       if (querySnapshot.docs.isNotEmpty) {
         final taskTypeSnapshot = querySnapshot.docs.first;
+        print(taskTypeSnapshot.data());
         final taskTypeData = taskTypeSnapshot.data() as Map<String, dynamic>?;
 
         if (taskTypeData != null) {
+          print(taskTypeData['taskTypeName']);
           return taskTypeData['taskTypeName'];
         } else {
           throw ('Document data is null or empty');
@@ -83,7 +109,7 @@ class _AddPointState extends State<AddPoint> {
             .toList();
       });
 
-      initializeControllers();
+      initializeControllersIfNeeded();
     } catch (e) {
       print("Error fetching complexity: $e");
       showSnackBar(context: context, message: "Error fetching complexity");
@@ -111,13 +137,15 @@ class _AddPointState extends State<AddPoint> {
             .map((doc) => doc.data() as Map<String, dynamic>)
             .toList();
       });
+
+      initializeControllersIfNeeded();
     } catch (e) {
       print("Error fetching skills: $e");
       showSnackBar(context: context, message: "Error fetching skills");
     }
   }
 
-  void fetchTaskTypes() async {
+  Future<void> fetchTaskTypes() async {
     try {
       QuerySnapshot taskTypesSnapshot = await FirebaseFirestore.instance
           .collection("taskType")
@@ -130,17 +158,25 @@ class _AddPointState extends State<AddPoint> {
             .toList();
       });
 
-      initializeControllers();
+      // Ensure selectedTaskType is valid
+      if (selectedTaskType != null && !taskTypes.contains(selectedTaskType)) {
+        selectedTaskType = null;
+      }
+
+      initializeControllersIfNeeded();
     } catch (e) {
       print("Error fetching task types: $e");
       showSnackBar(context: context, message: "Error fetching task types");
     }
   }
 
-  void initializeControllers() {
-    if (skillList.isEmpty || complexityList.isEmpty) {
-      return; // Do nothing if either list is empty
+  void initializeControllersIfNeeded() {
+    if (skillList.isNotEmpty && complexityList.isNotEmpty) {
+      initializeControllers();
     }
+  }
+
+  void initializeControllers() {
     controllersList.clear();
     for (int i = 0; i < skillList.length; i++) {
       List<TextEditingController> controllers = [];
@@ -153,17 +189,17 @@ class _AddPointState extends State<AddPoint> {
     if (widget.document != null) {
       selectedTaskType = widget.document!["taskTypeID"] as String?;
       Map<String, dynamic>? pointsData =
-          widget.document!["points"] as Map<String, dynamic>?;
+      widget.document!["points"] as Map<String, dynamic>?;
 
       if (pointsData != null) {
         for (int i = 0; i < skillList.length; i++) {
           Map<String, dynamic>? taskTypeData =
-              pointsData[skillList[i]["skillID"]] as Map<String, dynamic>?;
+          pointsData[skillList[i]["skillID"]] as Map<String, dynamic>?;
 
           if (taskTypeData != null) {
             for (int j = 0; j < complexityList.length; j++) {
               String complexityName =
-                  complexityList[j]["complexityName"] as String;
+              complexityList[j]["complexityName"] as String;
               var value = taskTypeData[complexityName];
               if (value is int || value is double) {
                 controllersList[i][j].text = value.toString();
@@ -180,8 +216,8 @@ class _AddPointState extends State<AddPoint> {
   void addPoints(Map<String, dynamic> pointsData) async {
     try {
       int lastPointsID =
-          await getLastID(collectionName: "points", primaryKey: "pointsID");
-      int newpointsID = lastPointsID + 1;
+      await getLastID(collectionName: "points", primaryKey: "pointsID");
+      int newPointsID = lastPointsID + 1;
 
       DocumentSnapshot taskTypeSnapshot = await FirebaseFirestore.instance
           .collection("taskType")
@@ -191,8 +227,24 @@ class _AddPointState extends State<AddPoint> {
           .then((snapshot) => snapshot.docs.first);
       String taskTypeID = taskTypeSnapshot["taskTypeID"];
 
+      // Adding selected radio button value to pointsData
+      switch (selectedRadio) {
+        case 1:
+          pointsData["type"] = {"assignee": true, "creator": false, "dueTo": false};
+          break;
+        case 2:
+          pointsData["type"] = {"assignee": false, "creator": true, "dueTo": false};
+          break;
+        case 3:
+          pointsData["type"] = {"assignee": false, "creator": false, "dueTo": true};
+          break;
+        default:
+          pointsData["type"] = {"assignee": false, "creator": false, "dueTo": false};
+          break;
+      }
+
       await FirebaseFirestore.instance.collection("points").add({
-        "pointsID": newpointsID.toString(),
+        "pointsID": newPointsID.toString(),
         "taskTypeID": taskTypeID,
         "points": pointsData,
       });
@@ -219,6 +271,22 @@ class _AddPointState extends State<AddPoint> {
           .collection("points")
           .where("pointsID", isEqualTo: widget.pointsID)
           .get();
+
+      // Adding selected radio button value to pointsData
+      switch (selectedRadio) {
+        case 1:
+          pointsData["type"] = {"assignee": true, "creator": false, "dueTo": false};
+          break;
+        case 2:
+          pointsData["type"] = {"assignee": false, "creator": true, "dueTo": false};
+          break;
+        case 3:
+          pointsData["type"] = {"assignee": false, "creator": false, "dueTo": true};
+          break;
+        default:
+          pointsData["type"] = {"assignee": false, "creator": false, "dueTo": false};
+          break;
+      }
 
       if (querySnapshot.docs.isNotEmpty) {
         final pointsSnapShot = querySnapshot.docs.first;
@@ -285,12 +353,29 @@ class _AddPointState extends State<AddPoint> {
     }
   }
 
+  void handleRadioValueChange(int? value) {
+    setState(() {
+      selectedRadio = value!;
+    });
+  }
+
+  Widget buildRadio(int value, String label) {
+    return Radio(
+      value: value,
+      groupValue: selectedRadio,
+      onChanged: handleRadioValueChange,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    print("Task types: $taskTypes");
+    print("Selected task type: $selectedTaskType");
     if (complexityList.isEmpty || skillList.isEmpty) {
       return Center(
         child: CircularProgressIndicator(),
       );
+
     }
     return Scaffold(
       appBar: AppBar(
@@ -312,6 +397,17 @@ class _AddPointState extends State<AddPoint> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Row(
+              children: [
+                buildRadio(1, 'Assignee'),
+                Text('Assignee'),
+                buildRadio(2, 'Creator'),
+                Text('Creator'),
+                buildRadio(3, 'Due To'),
+                Text('Due To'),
+              ],
+            ),
+            SizedBox(height: 10.0),
             Container(
               margin: EdgeInsets.all(10),
               child: DropdownButtonFormField(
@@ -321,7 +417,8 @@ class _AddPointState extends State<AddPoint> {
                     value: taskType,
                     child: Text(taskType),
                   );
-                }).toList(),
+                }).toSet().toList(), // Use Set to remove duplicates and then convert back to List
+
                 onChanged: (value) {
                   setState(() {
                     selectedTaskType = value as String?;
@@ -391,7 +488,7 @@ class _AddPointState extends State<AddPoint> {
             button(
               backgroundColor: CupertinoColors.black,
               buttonName:
-                  widget.document != null ? "Update points" : "Add points",
+              widget.document != null ? "Update points" : "Add points",
               textColor: CupertinoColors.white,
               onPressed: submit,
             ),

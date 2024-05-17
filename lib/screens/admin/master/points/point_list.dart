@@ -43,26 +43,26 @@ class _PointListState extends State<PointList> {
               buildRows(pointsData, rows);
 
               return FutureBuilder<Map<String, dynamic>>(
-                future: fetchSkillData(skillID: document["skillID"]),
-                builder: (context, skillSnapshot) {
-                  if (skillSnapshot.connectionState ==
+                future: fetchTaskTypeData(taskTypeID: document["taskTypeID"]),
+                builder: (context, taskTypeSnapShot) {
+                  if (taskTypeSnapShot.connectionState ==
                       ConnectionState.waiting) {
                     return SizedBox();
                   }
 
-                  if (!skillSnapshot.hasData) {
+                  if (!taskTypeSnapShot.hasData) {
                     return Container();
                   }
 
-                  var skillData = skillSnapshot.data!;
-                  var skillName = skillData['skillName'];
+                  var taskTypeData = taskTypeSnapShot.data!;
+                  var taskTypeName = taskTypeData['taskTypeName'];
 
                   return ExpansionTile(
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '$skillName',
+                          '$taskTypeName',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -79,6 +79,7 @@ class _PointListState extends State<PointList> {
                         scrollDirection: Axis.horizontal,
                         child: GestureDetector(
                           onTap: () {
+                            print(document.data());
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -121,25 +122,25 @@ class _PointListState extends State<PointList> {
     }
   }
 
-  Future<Map<String, dynamic>> fetchSkillData({required String skillID}) async {
+  Future<Map<String, dynamic>> fetchTaskTypeData({required String taskTypeID}) async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
-          .collection('skills')
-          .where('skillID', isEqualTo: skillID)
+          .collection('taskType')
+          .where('taskTypeID', isEqualTo: taskTypeID)
           .where('isDisabled', isEqualTo: false)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        final skillSnapshot = querySnapshot.docs.first;
-        final skillData = skillSnapshot.data() as Map<String, dynamic>?;
+        final taskTypeSnapshot = querySnapshot.docs.first;
+        final taskTypeData = taskTypeSnapshot.data() as Map<String, dynamic>?;
 
-        if (skillData != null) {
-          return skillData;
+        if (taskTypeData != null) {
+          return taskTypeData;
         } else {
           throw ('Document data is null or empty');
         }
       } else {
-        throw ('Skill with ID $skillID not found.');
+        throw ('Skill with ID $taskTypeID not found.');
       }
     } catch (e) {
       throw ('Error updating skill details: $e');
@@ -167,7 +168,7 @@ class _PointListState extends State<PointList> {
   void buildRows(Map<String, dynamic> pointsData, List<DataRow> rows) {
     for (var entry in pointsData.entries) {
       var taskTypeID = entry.key;
-      gettaskTypeName(taskTypeID).then((taskTypeName) {
+      getSkillName(taskTypeID).then((taskTypeName) {
         if (taskTypeName != null) {
           List<DataCell> cells = [
             DataCell(Text(taskTypeName)),
@@ -180,24 +181,24 @@ class _PointListState extends State<PointList> {
     }
   }
 
-  Future<String?> gettaskTypeName(String taskTypeID) async {
+  Future<String?> getSkillName(String skillID) async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
-          .collection('taskType')
-          .where('taskTypeID', isEqualTo: taskTypeID)
+          .collection('skills')
+          .where('skillID', isEqualTo: skillID)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        final taskTypeSnapShot = querySnapshot.docs.first;
-        final taskTypeData = taskTypeSnapShot.data() as Map<String, dynamic>?;
+        final skillSnapshot = querySnapshot.docs.first;
+        final skillData = skillSnapshot.data() as Map<String, dynamic>?;
 
-        if (taskTypeData != null && !taskTypeData["isDisabled"]) {
-          return taskTypeData["taskTypeName"];
+        if (skillData != null && !skillData["isDisabled"]) {
+          return skillData["skillName"];
         } else {
-          throw ('taskType with ID $taskTypeID is disabled or not found.');
+          throw ('taskType with ID $skillID is disabled or not found.');
         }
       } else {
-        throw ('taskType with ID $taskTypeID not found.');
+        throw ('taskType with ID $skillID not found.');
       }
     } catch (e) {
       throw ('Error fetching taskType details: $e');
