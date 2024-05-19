@@ -3,8 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
-import 'package:ppmt/screens/admin/master/level/add_level.dart';
-import 'package:ppmt/screens/admin/members/skill_level.dart';
+import 'package:ppmt/screens/admin/users/user_details.dart';
 
 class Users extends StatefulWidget {
   const Users({Key? key});
@@ -129,7 +128,7 @@ class _UsersState extends State<Users> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => SkillLevel(
+                        builder: (context) => UserDetails(
                           userID: data['userID'],
                           userName: data['name'],
                         ),

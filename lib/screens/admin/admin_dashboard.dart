@@ -4,10 +4,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/master/master.dart';
-import 'package:ppmt/screens/admin/members/add_user.dart';
-import 'package:ppmt/screens/admin/members/users.dart';
 import 'package:ppmt/screens/admin/message/message.dart';
 import 'package:ppmt/screens/admin/projects/projects.dart';
+import 'package:ppmt/screens/admin/users/add_user.dart';
+import 'package:ppmt/screens/admin/users/user_details.dart';
+import 'package:ppmt/screens/admin/users/users.dart';
 import 'package:ppmt/screens/signin_screen.dart';
 
 class AdminDashboard extends StatefulWidget {

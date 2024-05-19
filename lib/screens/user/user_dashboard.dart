@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/constants/color.dart';
-import 'package:ppmt/screens/admin/members/add_user.dart';
+import 'package:ppmt/screens/admin/users/add_user.dart';
 import 'package:ppmt/screens/signin_screen.dart';
 import 'package:ppmt/screens/user/skill_level/skill_level_list.dart';
 
