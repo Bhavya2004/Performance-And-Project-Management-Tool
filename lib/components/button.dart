@@ -14,7 +14,7 @@ Widget button(
     ),
     child: TextButton(
       style: ButtonStyle(
-        overlayColor: MaterialStateProperty.resolveWith(
+        overlayColor: WidgetStateProperty.resolveWith(
           (states) => Colors.black12,
         ),
       ),

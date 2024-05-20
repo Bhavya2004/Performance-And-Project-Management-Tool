@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/master/master.dart';
 import 'package:ppmt/screens/admin/message/message.dart';
-import 'package:ppmt/screens/admin/projects/projects.dart';
+import 'package:ppmt/screens/admin/projects/project_list.dart';
 import 'package:ppmt/screens/admin/users/add_user.dart';
 import 'package:ppmt/screens/admin/users/user_details.dart';
 import 'package:ppmt/screens/admin/users/users.dart';
