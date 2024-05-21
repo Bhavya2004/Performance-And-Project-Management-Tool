@@ -79,7 +79,6 @@ class _PointListState extends State<PointList> {
                         scrollDirection: Axis.horizontal,
                         child: GestureDetector(
                           onTap: () {
-                            print(document.data());
                             Navigator.push(
                               context,
                               MaterialPageRoute(

@@ -45,6 +45,7 @@ class _AddProjectState extends State<AddProject> {
   TextEditingController descriptionController = TextEditingController();
   TextEditingController managementPointsController = TextEditingController();
   TextEditingController totalBonusController = TextEditingController();
+  TextEditingController userAllocationController = TextEditingController();
   String projectCreator = "";
   String projectStatus = "";
   DateTime? startDate;
@@ -59,6 +60,11 @@ class _AddProjectState extends State<AddProject> {
   @override
   void initState() {
     super.initState();
+    // Set default values for management points and total bonus
+    managementPointsController.text =
+        widget.managementPoints.isNotEmpty ? widget.managementPoints : "20";
+    totalBonusController.text =
+        widget.totalBonus.isNotEmpty ? widget.totalBonus : "0";
     fetchUsers();
     fetchCurrentUserEmail();
     projectStatus = "To Do";
@@ -135,6 +141,7 @@ class _AddProjectState extends State<AddProject> {
         if (projectData != null) {
           await projectSnapshot.reference.update({
             'teamLeadID': userId,
+            "userAllocation": userAllocationController.text.trim().toString()
           }).then(
             (value) {
               Navigator.pop(context);
@@ -273,41 +280,57 @@ class _AddProjectState extends State<AddProject> {
                     ),
                   ),
                 ),
-                body: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Please select team lead for this Project',
-                      ),
-                      SizedBox(height: 20),
-                      DropdownButtonFormField<String>(
-                        value: selectedUserDocumentId,
-                        items: userItems,
-                        onChanged: (value) {
-                          setState(() {
-                            selectedUserDocumentId = value;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          labelText: 'Team Lead',
-                          labelStyle: TextStyle(
-                            // fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: CupertinoColors.black,
+                body: Column(
+                  children: [
+                    Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                          child: DropdownButtonFormField<String>(
+                            value: selectedUserDocumentId,
+                            items: userItems,
+                            onChanged: (value) {
+                              setState(() {
+                                selectedUserDocumentId = value;
+                              });
+                            },
+                            decoration: InputDecoration(
+                              labelText: 'Team Lead',
+                              labelStyle: TextStyle(
+                                // fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: CupertinoColors.black,
+                              ),
+                              border: OutlineInputBorder(),
+                            ),
                           ),
-                          border: OutlineInputBorder(),
                         ),
-                      ),
-                      SizedBox(height: 20),
-                      button(
+                        textFormField(
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return "User Allocation is required";
+                            }
+                            return null;
+                          },
+                          controller: userAllocationController,
+                          keyboardType: TextInputType.number,
+                          labelText: "User Allocation",
+                          obscureText: false,
+                          inputFormatNumber: 3,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: button(
                         onPressed: setTeamLead,
                         buttonName: 'Confirm',
                         textColor: CupertinoColors.white,
                         backgroundColor: CupertinoColors.black,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               );
             },
@@ -497,6 +520,7 @@ class _AddProjectState extends State<AddProject> {
                 controller: managementPointsController,
                 labelText: "Management Points",
                 keyboardType: TextInputType.number,
+                inputFormatNumber: 3,
                 enabled: isEditable,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -509,6 +533,7 @@ class _AddProjectState extends State<AddProject> {
                 obscureText: false,
                 controller: totalBonusController,
                 labelText: "Total Bonus",
+                inputFormatNumber: 3,
                 keyboardType: TextInputType.number,
                 enabled: isEditable,
                 validator: (value) {
@@ -527,7 +552,9 @@ class _AddProjectState extends State<AddProject> {
                       textColor: CupertinoColors.white)
                   : Container(),
               SizedBox(height: 10),
-              projectStatus == "To Do"
+              widget.projectID != "" &&
+                      projectStatus != "In Progress" &&
+                      projectStatus != "Completed"
                   ? button(
                       onPressed: updateProjectStatusToInProgress,
                       buttonName: 'Kick Off',
@@ -543,7 +570,8 @@ class _AddProjectState extends State<AddProject> {
                       textColor: CupertinoColors.white)
                   : Container(),
               SizedBox(height: 10),
-              projectStatus == "In Progress" || projectStatus == "Completed"
+              widget.projectStatus != "In Progress" &&
+                      widget.projectStatus != "Completed"
                   ? button(
                       onPressed: deleteProject,
                       buttonName: 'Delete',

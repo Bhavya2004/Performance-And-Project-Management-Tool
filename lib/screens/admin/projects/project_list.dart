@@ -13,7 +13,7 @@ class Projects extends StatefulWidget {
 
 class _ProjectsState extends State<Projects> {
   String searchText = '';
-  String _selectedStatus = 'All'; // Initialize with 'All' to show all projects
+  Set<String> _selectedStatuses = {'All'}; // Initialize with 'All' to show all projects
 
   @override
   Widget build(BuildContext context) {
@@ -42,30 +42,54 @@ class _ProjectsState extends State<Projects> {
                 FilterChip(
                   label: Text('To Do'),
                   selectedColor: Colors.grey[300],
-                  selected: _selectedStatus == 'To Do',
+                  selected: _selectedStatuses.contains('To Do'),
                   onSelected: (value) {
                     setState(() {
-                      _selectedStatus = value ? 'To Do' : 'All';
+                      if (value) {
+                        _selectedStatuses.add('To Do');
+                        _selectedStatuses.remove('All'); // Remove 'All' if any specific status is selected
+                      } else {
+                        _selectedStatuses.remove('To Do');
+                      }
+                      if (_selectedStatuses.isEmpty) {
+                        _selectedStatuses.add('All'); // Add 'All' if no status is selected
+                      }
                     });
                   },
                 ),
                 FilterChip(
                   label: Text('In Progress'),
                   selectedColor: Colors.yellow[300],
-                  selected: _selectedStatus == 'In Progress',
+                  selected: _selectedStatuses.contains('In Progress'),
                   onSelected: (value) {
                     setState(() {
-                      _selectedStatus = value ? 'In Progress' : 'All';
+                      if (value) {
+                        _selectedStatuses.add('In Progress');
+                        _selectedStatuses.remove('All'); // Remove 'All' if any specific status is selected
+                      } else {
+                        _selectedStatuses.remove('In Progress');
+                      }
+                      if (_selectedStatuses.isEmpty) {
+                        _selectedStatuses.add('All'); // Add 'All' if no status is selected
+                      }
                     });
                   },
                 ),
                 FilterChip(
                   label: Text('Completed'),
                   selectedColor: Colors.green[300],
-                  selected: _selectedStatus == 'Completed',
+                  selected: _selectedStatuses.contains('Completed'),
                   onSelected: (value) {
                     setState(() {
-                      _selectedStatus = value ? 'Completed' : 'All';
+                      if (value) {
+                        _selectedStatuses.add('Completed');
+                        _selectedStatuses.remove('All'); // Remove 'All' if any specific status is selected
+                      } else {
+                        _selectedStatuses.remove('Completed');
+                      }
+                      if (_selectedStatuses.isEmpty) {
+                        _selectedStatuses.add('All'); // Add 'All' if no status is selected
+                      }
                     });
                   },
                 ),
@@ -76,8 +100,7 @@ class _ProjectsState extends State<Projects> {
               child: TextField(
                 onChanged: (value) {
                   setState(() {
-                    searchText = value
-                        .toLowerCase(); // Convert search text to lowercase for case-insensitive comparison
+                    searchText = value.toLowerCase(); // Convert search text to lowercase for case-insensitive comparison
                   });
                 },
                 decoration: InputDecoration(
@@ -106,8 +129,7 @@ class _ProjectsState extends State<Projects> {
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {
                       DocumentSnapshot doc = snapshot.data!.docs[index];
-                      Map<String, dynamic> data =
-                          doc.data() as Map<String, dynamic>;
+                      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
                       if (_shouldShowProject(data)) {
                         return buildCard(context, doc, data);
                       } else {
@@ -130,10 +152,9 @@ class _ProjectsState extends State<Projects> {
     );
   }
 
-  Widget buildCard(BuildContext context, DocumentSnapshot document,
-      Map<String, dynamic> data) {
+  Widget buildCard(BuildContext context, DocumentSnapshot document, Map<String, dynamic> data) {
     Color cardColor = _getStatusColor(data['projectStatus']);
-
+    final iButtonColor = kAppBarColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
     return Card(
       margin: EdgeInsets.all(10),
       color: cardColor,
@@ -155,7 +176,7 @@ class _ProjectsState extends State<Projects> {
                 IconButton(
                   icon: Icon(
                     CupertinoIcons.info_circle_fill,
-                    color: kEditColor,
+                    color: CupertinoColors.black,
                   ),
                   onPressed: () async {
                     Navigator.push(
@@ -185,8 +206,11 @@ class _ProjectsState extends State<Projects> {
   }
 
   bool _shouldShowProject(Map<String, dynamic> data) {
-    if (_selectedStatus != 'All' && data['projectStatus'] != _selectedStatus) {
-      return false; // If the project status doesn't match the selected status, don't show it
+    if (_selectedStatuses.contains('All')) {
+      return true; // Show all projects if 'All' is selected
+    }
+    if (!_selectedStatuses.contains(data['projectStatus'])) {
+      return false; // If the project status doesn't match any of the selected statuses, don't show it
     }
     if (searchText.isEmpty) {
       return true; // Show all projects if search text is empty
