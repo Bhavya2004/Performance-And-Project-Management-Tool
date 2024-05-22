@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ppmt/constants/color.dart';
+import 'package:ppmt/screens/admin/projects/project_details.dart';
 import 'add_project.dart';
 
 class Projects extends StatefulWidget {
@@ -13,7 +14,9 @@ class Projects extends StatefulWidget {
 
 class _ProjectsState extends State<Projects> {
   String searchText = '';
-  Set<String> _selectedStatuses = {'All'}; // Initialize with 'All' to show all projects
+  Set<String> _selectedStatuses = {
+    'All'
+  }; // Initialize with 'All' to show all projects
 
   @override
   Widget build(BuildContext context) {
@@ -47,12 +50,14 @@ class _ProjectsState extends State<Projects> {
                     setState(() {
                       if (value) {
                         _selectedStatuses.add('To Do');
-                        _selectedStatuses.remove('All'); // Remove 'All' if any specific status is selected
+                        _selectedStatuses.remove(
+                            'All'); // Remove 'All' if any specific status is selected
                       } else {
                         _selectedStatuses.remove('To Do');
                       }
                       if (_selectedStatuses.isEmpty) {
-                        _selectedStatuses.add('All'); // Add 'All' if no status is selected
+                        _selectedStatuses
+                            .add('All'); // Add 'All' if no status is selected
                       }
                     });
                   },
@@ -65,12 +70,14 @@ class _ProjectsState extends State<Projects> {
                     setState(() {
                       if (value) {
                         _selectedStatuses.add('In Progress');
-                        _selectedStatuses.remove('All'); // Remove 'All' if any specific status is selected
+                        _selectedStatuses.remove(
+                            'All'); // Remove 'All' if any specific status is selected
                       } else {
                         _selectedStatuses.remove('In Progress');
                       }
                       if (_selectedStatuses.isEmpty) {
-                        _selectedStatuses.add('All'); // Add 'All' if no status is selected
+                        _selectedStatuses
+                            .add('All'); // Add 'All' if no status is selected
                       }
                     });
                   },
@@ -83,12 +90,14 @@ class _ProjectsState extends State<Projects> {
                     setState(() {
                       if (value) {
                         _selectedStatuses.add('Completed');
-                        _selectedStatuses.remove('All'); // Remove 'All' if any specific status is selected
+                        _selectedStatuses.remove(
+                            'All'); // Remove 'All' if any specific status is selected
                       } else {
                         _selectedStatuses.remove('Completed');
                       }
                       if (_selectedStatuses.isEmpty) {
-                        _selectedStatuses.add('All'); // Add 'All' if no status is selected
+                        _selectedStatuses
+                            .add('All'); // Add 'All' if no status is selected
                       }
                     });
                   },
@@ -100,7 +109,8 @@ class _ProjectsState extends State<Projects> {
               child: TextField(
                 onChanged: (value) {
                   setState(() {
-                    searchText = value.toLowerCase(); // Convert search text to lowercase for case-insensitive comparison
+                    searchText = value
+                        .toLowerCase(); // Convert search text to lowercase for case-insensitive comparison
                   });
                 },
                 decoration: InputDecoration(
@@ -129,7 +139,8 @@ class _ProjectsState extends State<Projects> {
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {
                       DocumentSnapshot doc = snapshot.data!.docs[index];
-                      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+                      Map<String, dynamic> data =
+                          doc.data() as Map<String, dynamic>;
                       if (_shouldShowProject(data)) {
                         return buildCard(context, doc, data);
                       } else {
@@ -152,9 +163,11 @@ class _ProjectsState extends State<Projects> {
     );
   }
 
-  Widget buildCard(BuildContext context, DocumentSnapshot document, Map<String, dynamic> data) {
+  Widget buildCard(BuildContext context, DocumentSnapshot document,
+      Map<String, dynamic> data) {
     Color cardColor = _getStatusColor(data['projectStatus']);
-    final iButtonColor = kAppBarColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+    final iButtonColor =
+        kAppBarColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
     return Card(
       margin: EdgeInsets.all(10),
       color: cardColor,
@@ -162,13 +175,11 @@ class _ProjectsState extends State<Projects> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            GestureDetector(
-              child: Text(
-                data['projectName'],
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
+            Text(
+              data['projectName'],
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
               ),
             ),
             Row(
@@ -182,16 +193,8 @@ class _ProjectsState extends State<Projects> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AddProject(
-                          totalBonus: data["totalBonus"],
-                          startDate: data["startDate"],
-                          projectName: data["projectName"],
-                          projectID: data["projectID"],
-                          managementPoints: data["managementPoints"],
-                          endDate: data["endDate"],
-                          description: data["projectDescription"],
-                          projectCreator: data["projectCreator"],
-                          projectStatus: data["projectStatus"],
+                        builder: (context) => ProjectDetails(
+                          projectData: data, // Pass the project data
                         ),
                       ),
                     );

@@ -1,9 +1,7 @@
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:ppmt/components/button.dart';
 import 'package:ppmt/components/dateFormat.dart';
 import 'package:ppmt/components/snackbar.dart';
@@ -417,20 +415,22 @@ class _AddProjectState extends State<AddProject> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: CupertinoColors.white,
-        ),
-        backgroundColor: kAppBarColor,
-        title: Text(
-          widget.projectID != "" ? 'Update Project' : 'Add Project',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: CupertinoColors.white,
-          ),
-        ),
-      ),
+      appBar: widget.projectID == ""
+          ? AppBar(
+              iconTheme: IconThemeData(
+                color: CupertinoColors.white,
+              ),
+              backgroundColor: kAppBarColor,
+              title: Text(
+                widget.projectID != "" ? 'Update Project' : 'Add Project',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: CupertinoColors.white,
+                ),
+              ),
+            )
+          : null,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
