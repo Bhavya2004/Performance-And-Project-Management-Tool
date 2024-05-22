@@ -306,17 +306,24 @@ class _AddProjectState extends State<AddProject> {
                           ),
                         ),
                         textFormField(
+                          obscureText: false,
+                          controller: userAllocationController,
+                          labelText: "User Allocation (%)",
+                          keyboardType: TextInputType.number,
+                          inputFormatNumber: 3,
+                          enabled: isEditable,
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return "User Allocation is required";
                             }
+                            // Parse the entered value as an integer
+                            int allocation = int.tryParse(value.trim()) ?? 0;
+                            // Check if the value is between 1 and 100
+                            if (allocation < 1 || allocation > 100) {
+                              return "User Allocation must be between 1 and 100";
+                            }
                             return null;
                           },
-                          controller: userAllocationController,
-                          keyboardType: TextInputType.number,
-                          labelText: "User Allocation",
-                          obscureText: false,
-                          inputFormatNumber: 3,
                         ),
                       ],
                     ),
@@ -518,13 +525,19 @@ class _AddProjectState extends State<AddProject> {
               textFormField(
                 obscureText: false,
                 controller: managementPointsController,
-                labelText: "Management Points",
+                labelText: "Management Points (%)",
                 keyboardType: TextInputType.number,
                 inputFormatNumber: 3,
                 enabled: isEditable,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return "Management Points are required";
+                  }
+                  // Parse the entered value as an integer
+                  int points = int.tryParse(value.trim()) ?? 0;
+                  // Check if the value is between 1 and 100
+                  if (points < 1 || points > 100) {
+                    return "Management Points must be between 1 and 100";
                   }
                   return null;
                 },
@@ -533,7 +546,6 @@ class _AddProjectState extends State<AddProject> {
                 obscureText: false,
                 controller: totalBonusController,
                 labelText: "Total Bonus",
-                inputFormatNumber: 3,
                 keyboardType: TextInputType.number,
                 enabled: isEditable,
                 validator: (value) {
@@ -570,7 +582,8 @@ class _AddProjectState extends State<AddProject> {
                       textColor: CupertinoColors.white)
                   : Container(),
               SizedBox(height: 10),
-              widget.projectStatus != "In Progress" &&
+              widget.projectID != "" &&
+                      widget.projectStatus != "In Progress" &&
                       widget.projectStatus != "Completed"
                   ? button(
                       onPressed: deleteProject,

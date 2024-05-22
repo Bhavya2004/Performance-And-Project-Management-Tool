@@ -19,6 +19,7 @@ class _SplashState extends State<Splash> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Container(
           width: double.infinity,
@@ -73,7 +74,7 @@ class _SplashState extends State<Splash> {
                       decoration: BoxDecoration(
                         image: DecorationImage(
                           image: AssetImage(
-                            'assets/performance.png',
+                            'assets/logo/ic_launcher.png',
                           ),
                         ),
                       ),

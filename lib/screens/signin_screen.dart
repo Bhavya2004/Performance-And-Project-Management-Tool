@@ -256,7 +256,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage(
-                      'assets/login.png',
+                      'assets/logo/ic_launcher.png',
                     ),
                     fit: BoxFit.cover,
                   ),
