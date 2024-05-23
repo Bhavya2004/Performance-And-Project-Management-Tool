@@ -7,6 +7,8 @@ import 'package:ppmt/screens/admin/users/add_user.dart';
 import 'package:ppmt/screens/signin_screen.dart';
 import 'package:ppmt/screens/user/skill_level/skill_level_list.dart';
 
+import 'my_projects.dart';
+
 class UserDashboard extends StatefulWidget {
   UserDashboard({Key? key});
 
@@ -176,6 +178,18 @@ class _UserDashboardState extends State<UserDashboard> {
                     ),
                   );
                 }
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.work),
+              title: Text('My Projects'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MyProjects(), // Navigate to MyProjects
+                  ),
+                );
               },
             ),
             ListTile(
