@@ -1,32 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
-import 'project_details.dart';
+import 'package:ppmt/screens/admin/projects/project_details.dart';
 
 class MyProjects extends StatefulWidget {
+  final String userID;
+
+  MyProjects({Key? key, required this.userID}) : super(key: key);
+
   @override
   _MyProjectsState createState() => _MyProjectsState();
 }
 
 class _MyProjectsState extends State<MyProjects> {
   String searchText = '';
-  Set<String> _selectedStatuses = {'All'}; // Initialize with 'All' to show all projects
+  Set<String> selectedStatuses = {'All'};
   String userId = '';
 
   @override
   void initState() {
     super.initState();
-    fetchCurrentUserId();
-  }
-
-  Future<void> fetchCurrentUserId() async {
-    User user = FirebaseAuth.instance.currentUser!;
-    setState(() {
-      userId = user.uid;
-    });
-    print('Current User ID: $userId'); // Debug statement
+    print(widget.userID);
   }
 
   @override
@@ -56,17 +51,17 @@ class _MyProjectsState extends State<MyProjects> {
                 FilterChip(
                   label: Text('To Do'),
                   selectedColor: Colors.grey[300],
-                  selected: _selectedStatuses.contains('To Do'),
+                  selected: selectedStatuses.contains('To Do'),
                   onSelected: (value) {
                     setState(() {
                       if (value) {
-                        _selectedStatuses.add('To Do');
-                        _selectedStatuses.remove('All');
+                        selectedStatuses.add('To Do');
+                        selectedStatuses.remove('All');
                       } else {
-                        _selectedStatuses.remove('To Do');
+                        selectedStatuses.remove('To Do');
                       }
-                      if (_selectedStatuses.isEmpty) {
-                        _selectedStatuses.add('All');
+                      if (selectedStatuses.isEmpty) {
+                        selectedStatuses.add('All');
                       }
                     });
                   },
@@ -74,17 +69,17 @@ class _MyProjectsState extends State<MyProjects> {
                 FilterChip(
                   label: Text('In Progress'),
                   selectedColor: Colors.yellow[300],
-                  selected: _selectedStatuses.contains('In Progress'),
+                  selected: selectedStatuses.contains('In Progress'),
                   onSelected: (value) {
                     setState(() {
                       if (value) {
-                        _selectedStatuses.add('In Progress');
-                        _selectedStatuses.remove('All');
+                        selectedStatuses.add('In Progress');
+                        selectedStatuses.remove('All');
                       } else {
-                        _selectedStatuses.remove('In Progress');
+                        selectedStatuses.remove('In Progress');
                       }
-                      if (_selectedStatuses.isEmpty) {
-                        _selectedStatuses.add('All');
+                      if (selectedStatuses.isEmpty) {
+                        selectedStatuses.add('All');
                       }
                     });
                   },
@@ -92,17 +87,17 @@ class _MyProjectsState extends State<MyProjects> {
                 FilterChip(
                   label: Text('Completed'),
                   selectedColor: Colors.green[300],
-                  selected: _selectedStatuses.contains('Completed'),
+                  selected: selectedStatuses.contains('Completed'),
                   onSelected: (value) {
                     setState(() {
                       if (value) {
-                        _selectedStatuses.add('Completed');
-                        _selectedStatuses.remove('All');
+                        selectedStatuses.add('Completed');
+                        selectedStatuses.remove('All');
                       } else {
-                        _selectedStatuses.remove('Completed');
+                        selectedStatuses.remove('Completed');
                       }
-                      if (_selectedStatuses.isEmpty) {
-                        _selectedStatuses.add('All');
+                      if (selectedStatuses.isEmpty) {
+                        selectedStatuses.add('All');
                       }
                     });
                   },
@@ -129,7 +124,7 @@ class _MyProjectsState extends State<MyProjects> {
               child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('projects')
-                    .where('teamLeadID', isEqualTo: userId)
+                    .where('teamLeadID', isEqualTo: widget.userID)
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
@@ -139,17 +134,12 @@ class _MyProjectsState extends State<MyProjects> {
                       ),
                     );
                   }
-                  // Print the fetched documents
-                  print('Fetched Projects: ${snapshot.data!.docs.length}');
-                  snapshot.data!.docs.forEach((doc) {
-                    print(doc.data());
-                  });
-
                   return ListView.builder(
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {
                       DocumentSnapshot doc = snapshot.data!.docs[index];
-                      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+                      Map<String, dynamic> data =
+                          doc.data() as Map<String, dynamic>;
                       if (_shouldShowProject(data)) {
                         return buildCard(context, doc, data);
                       } else {
@@ -166,7 +156,8 @@ class _MyProjectsState extends State<MyProjects> {
     );
   }
 
-  Widget buildCard(BuildContext context, DocumentSnapshot document, Map<String, dynamic> data) {
+  Widget buildCard(BuildContext context, DocumentSnapshot document,
+      Map<String, dynamic> data) {
     Color cardColor = _getStatusColor(data['projectStatus']);
     return Card(
       margin: EdgeInsets.all(10),
@@ -194,7 +185,7 @@ class _MyProjectsState extends State<MyProjects> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ProjectDetails(
-                          projectId: document.id,
+                          projectData: data,
                         ),
                       ),
                     );
@@ -209,10 +200,10 @@ class _MyProjectsState extends State<MyProjects> {
   }
 
   bool _shouldShowProject(Map<String, dynamic> data) {
-    if (_selectedStatuses.contains('All')) {
+    if (selectedStatuses.contains('All')) {
       return true;
     }
-    if (!_selectedStatuses.contains(data['projectStatus'])) {
+    if (!selectedStatuses.contains(data['projectStatus'])) {
       return false;
     }
     if (searchText.isEmpty) {

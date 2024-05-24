@@ -53,7 +53,9 @@ class _AddProjectState extends State<AddProject> {
   List<DropdownMenuItem<String>> userItems = [];
 
   bool get isEditable =>
-      projectStatus == 'To Do' || projectStatus == 'In Progress';
+      (projectStatus == 'To Do' || projectStatus == 'In Progress') &&
+      (widget.projectCreator == FirebaseAuth.instance.currentUser!.email ||
+          (projectCreator == FirebaseAuth.instance.currentUser!.email));
 
   @override
   void initState() {

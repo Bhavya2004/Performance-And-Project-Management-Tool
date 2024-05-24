@@ -14,7 +14,8 @@ class ProjectDetails extends StatefulWidget {
   State<ProjectDetails> createState() => _ProjectDetailsState();
 }
 
-class _ProjectDetailsState extends State<ProjectDetails> with SingleTickerProviderStateMixin {
+class _ProjectDetailsState extends State<ProjectDetails>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final List<String> tabTitles = [
     'Update Project',
@@ -48,7 +49,7 @@ class _ProjectDetailsState extends State<ProjectDetails> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    final projectData = widget.projectData; // Access the project data here
+    final projectData = widget.projectData;
 
     return DefaultTabController(
       length: 3,
@@ -132,7 +133,9 @@ class _ProjectDetailsState extends State<ProjectDetails> with SingleTickerProvid
               managementPoints: projectData['managementPoints'],
               totalBonus: projectData['totalBonus'],
             ),
-            ProjectSkillPage(),
+            ProjectSkillPage(
+              projectData: projectData,
+            ),
             TaskTypeList(),
           ],
         ),

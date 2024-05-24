@@ -181,13 +181,24 @@ class _UserDashboardState extends State<UserDashboard> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.work),
-              title: Text('My Projects'),
-              onTap: () {
+              leading: Icon(
+                Icons.work,
+                color: kAppBarColor,
+              ),
+              title: Text(
+                'My Projects',
+                style: TextStyle(
+                  color: CupertinoColors.black,
+                ),
+              ),
+              onTap: () async {
+                String? userID = await getCurrentUserUserID();
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MyProjects(), // Navigate to MyProjects
+                    builder: (context) => MyProjects(
+                      userID: userID!,
+                    ), // Navigate to MyProjects
                   ),
                 );
               },
