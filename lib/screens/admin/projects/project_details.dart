@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
 import 'package:ppmt/screens/admin/master/task/task_type_list.dart';
 import 'package:ppmt/screens/admin/projects/add_project.dart';
+import 'package:ppmt/screens/admin/projects/allocated_user.dart';
 import 'package:ppmt/screens/admin/projects/project_skills.dart';
 
 class ProjectDetails extends StatefulWidget {
@@ -136,7 +137,8 @@ class _ProjectDetailsState extends State<ProjectDetails>
             ProjectSkillPage(
               projectData: projectData,
             ),
-            TaskTypeList(),
+            AllocatedUser(projectID: projectData['projectID'],
+            ),
           ],
         ),
       ),
