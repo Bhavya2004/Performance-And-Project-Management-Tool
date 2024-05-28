@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -12,7 +13,7 @@ class AllocatedUser extends StatefulWidget {
 
 class _AllocatedUserState extends State<AllocatedUser> {
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-  String teamLeadName = 'Loading...';
+  String? teamLeadName = FirebaseAuth.instance.currentUser?.displayName!;
   String teamLeadID = '';
   List<Map<String, dynamic>> users = [];
   String? selectedUserID;
@@ -50,8 +51,10 @@ class _AllocatedUserState extends State<AllocatedUser> {
 
   Future<void> fetchTeamLeadName(String teamLeadID) async {
     try {
-      DocumentSnapshot teamLeadSnapshot = await firebaseFirestore.collection('users').doc(teamLeadID).get();
+      DocumentSnapshot teamLeadSnapshot = await firebaseFirestore.collection('projects').doc(teamLeadID).get();
+      print(teamLeadSnapshot.data());
       if (teamLeadSnapshot.exists) {
+
         setState(() {
           teamLeadName = teamLeadSnapshot['name'];
         });
