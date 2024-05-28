@@ -13,7 +13,7 @@ class AllocatedUser extends StatefulWidget {
 
 class _AllocatedUserState extends State<AllocatedUser> {
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-  String? teamLeadName = FirebaseAuth.instance.currentUser?.displayName!;
+  String? teamLeadName = "Loading...";
   String teamLeadID = '';
   List<Map<String, dynamic>> users = [];
   String? selectedUserID;
