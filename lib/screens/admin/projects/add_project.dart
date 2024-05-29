@@ -204,6 +204,11 @@ class _AddProjectState extends State<AddProject> {
               Navigator.pop(context);
             },
           );
+          // Add the team lead's ID to the allocated_users collection
+          await FirebaseFirestore.instance.collection('allocated_users').add({
+            'userID': userId,
+            'projectID': widget.projectID
+          });
           showSnackBar(
               context: context, message: "Team Lead Selected Successfully");
         } else {

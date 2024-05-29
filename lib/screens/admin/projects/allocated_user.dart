@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -13,7 +12,7 @@ class AllocatedUser extends StatefulWidget {
 
 class _AllocatedUserState extends State<AllocatedUser> {
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-  String? teamLeadName = "Loading...";
+  String? teamLeadName;
   String teamLeadID = '';
   List<Map<String, dynamic>> users = [];
   String? selectedUserID;
@@ -24,6 +23,10 @@ class _AllocatedUserState extends State<AllocatedUser> {
   final TextEditingController _workPointsController = TextEditingController();
   final TextEditingController userAllocationController = TextEditingController();
   String? selectedUserDocumentId;
+
+  final _formKey = GlobalKey<FormState>();
+  String? _selectedUser;
+  String? _allocationPercentage;
 
   @override
   void initState() {
@@ -51,20 +54,25 @@ class _AllocatedUserState extends State<AllocatedUser> {
 
   Future<void> fetchTeamLeadName(String teamLeadID) async {
     try {
-      DocumentSnapshot teamLeadSnapshot = await firebaseFirestore.collection('projects').doc(teamLeadID).get();
-      print(teamLeadSnapshot.data());
+      DocumentSnapshot teamLeadSnapshot = await firebaseFirestore.collection('users').doc(teamLeadID).get();
       if (teamLeadSnapshot.exists) {
-
         setState(() {
           teamLeadName = teamLeadSnapshot['name'];
         });
       } else {
         print('Team lead snapshot does not exist');
+        setState(() {
+          teamLeadName = 'Not found';
+        });
       }
     } catch (e) {
       print('Error fetching team lead name: $e');
+      setState(() {
+        teamLeadName = 'Error';
+      });
     }
   }
+
   Future<void> fetchUsers() async {
     try {
       QuerySnapshot userSnapshot = await firebaseFirestore.collection('users').get();
@@ -75,8 +83,7 @@ class _AllocatedUserState extends State<AllocatedUser> {
         };
       }).toList();
 
-      // Filter out the team lead
-      userList = userList.where((user) => user['userID'] != teamLeadID).toList();
+      userList = userList.where((user) => user['userID'] != teamLeadID && user['role'] != 'admin').toList();
 
       setState(() {
         users = userList;
@@ -88,7 +95,6 @@ class _AllocatedUserState extends State<AllocatedUser> {
 
   Future<void> saveAllocation() async {
     try {
-      // Check if the user is already allocated
       QuerySnapshot existingAllocations = await firebaseFirestore
           .collection('allocated_users')
           .where('UserID', isEqualTo: selectedUserID)
@@ -96,7 +102,7 @@ class _AllocatedUserState extends State<AllocatedUser> {
           .get();
 
       if (existingAllocations.docs.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User is already allocated to this project')));
+        showSnackBar(context: context, message: 'User is already allocated to this project');
         return;
       }
 
@@ -108,13 +114,13 @@ class _AllocatedUserState extends State<AllocatedUser> {
         'Work_Points': int.parse(_workPointsController.text),
         'StartDate': _startDateController.text,
         'EndDate': _endDateController.text,
-        'disabled': false, // Add a field to track if the user is disabled
+        'disabled': false,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User allocation saved successfully')));
     } catch (e) {
       print('Error saving allocation: $e');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error saving allocation')));
+      showSnackBar(context: context, message: 'Error saving allocation');
     }
   }
 
@@ -136,12 +142,13 @@ class _AllocatedUserState extends State<AllocatedUser> {
     try {
       await firebaseFirestore.collection('allocated_users').doc(docID).update({
         'disabled': !isDisabled,
+        'EndDate': !isDisabled ? DateFormat('yyyy-MM-dd').format(DateTime.now()) : '', // Set end date to current date if user is disabled
       });
       setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User status updated')));
+      showSnackBar(context: context, message: 'User status updated');
     } catch (e) {
       print('Error updating user status: $e');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating user status')));
+      showSnackBar(context: context, message: 'Error updating user status');
     }
   }
 
@@ -176,82 +183,21 @@ class _AllocatedUserState extends State<AllocatedUser> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  void _showChangeTLDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Select Team Lead'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String>(
-                value: selectedUserDocumentId,
-                hint: Text('Select User'),
-                items: users.map((user) {
-                  return DropdownMenuItem<String>(
-                    value: user['userID'],
-                    child: Text(user['name']),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedUserDocumentId = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Team Lead',
-                ),
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: userAllocationController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'User Allocation (%)',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            ElevatedButton(
-              child: Text('Confirm'),
-              onPressed: setTeamLead,
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              ListTile(
-                leading: Icon(Icons.group, color: Colors.blue),
-                title: Text(
-                  "$teamLeadName's Team",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Form(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Add User'),
+            content: SingleChildScrollView(
+              child: Form(
+                key: _formKey,
                 child: Column(
                   children: [
                     DropdownButtonFormField<String>(
-                      value: selectedUserID,
+                      value: _selectedUser,
                       hint: Text('Select User'),
                       items: users.map((user) {
                         return DropdownMenuItem<String>(
@@ -261,133 +207,163 @@ class _AllocatedUserState extends State<AllocatedUser> {
                       }).toList(),
                       onChanged: (value) {
                         setState(() {
-                          selectedUserID = value;
+                          _selectedUser = value;
                         });
                       },
-                      decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'User'),
-                    ),
-                    SizedBox(height: 10),
-                    Text('Allocation%: ${_currentSliderValue.round()}'),
-                    Slider(
-                      value: _currentSliderValue,
-                      min: 0,
-                      max: 100,
-                      divisions: 100,
-                      onChanged: (double value) {
-                        setState(() {
-                          _currentSliderValue = value;
-                        });
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please select a user';
+                        }
+                        return null;
                       },
                     ),
-                    SizedBox(height: 10),
                     TextFormField(
-                      controller: _startDateController,
-                      readOnly: true,
+                      initialValue: _allocationPercentage,
                       decoration: InputDecoration(
-                        labelText: 'Start Date',
-                        border: OutlineInputBorder(),
+                        labelText: 'Allocation%',
                       ),
-                      onTap: () => _selectDate(context, _startDateController),
-                    ),
-                    SizedBox(height: 10),
-                    TextFormField(
-                      controller: _endDateController,
-                      readOnly: true,
-                      decoration: InputDecoration(
-                        labelText: 'End Date',
-                        border: OutlineInputBorder(),
-                      ),
-                      onTap: () => _selectDate(context, _endDateController),
-                    ),
-                    SizedBox(height: 10),
-                    TextFormField(
-                      controller: _mgmtPointsController,
-                      decoration: InputDecoration(labelText: 'Management Points', border: OutlineInputBorder()),
                       keyboardType: TextInputType.number,
-                    ),
-                    SizedBox(height: 10),
-                    TextFormField(
-                      controller: _workPointsController,
-                      decoration: InputDecoration(labelText: 'Work Points', border: OutlineInputBorder()),
-                      keyboardType: TextInputType.number,
-                    ),
-                    SizedBox(height: 10),
-                    ElevatedButton(
-                      child: Text('Add'),
-                      onPressed: selectedUserID != null ? saveAllocation : null,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter the allocation percentage';
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        _allocationPercentage = value;
+                      },
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 10),
-              StreamBuilder<QuerySnapshot>(
-                stream: firebaseFirestore.collection('allocated_users').where('ProjectID', isEqualTo: widget.projectID).snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  }
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return Center(child: Text('No allocated users'));
-                  }
-
-                  List<Map<String, dynamic>> allocatedUsers = snapshot.data!.docs.map((doc) {
-                    final docData = doc.data() as Map<String, dynamic>;
-                    return {
-                      'docID': doc.id,
-                      'userID': docData['UserID'],
-                      'userName': users.firstWhere((user) => user['userID'] == docData['UserID'], orElse: () => {'name': 'Unknown'})['name'],
-                      'allocation': docData['Allocation%'],
-                      'startDate': docData['StartDate'],
-                      'endDate': docData['EndDate'],
-                      'mgmtPoints': docData['Mgmt_Points'],
-                      'workPoints': docData['Work_Points'],
-                      'disabled': docData['disabled'] ?? false,
-                    };
-                  }).toList();
-
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: allocatedUsers.length,
-                    itemBuilder: (context, index) {
-                      Map<String, dynamic> user = allocatedUsers[index];
-                      return Card(
-                        child: ListTile(
-                          title: Text('Name: ${user['userName']}'),
-                          subtitle: Text(
-                              'Allocation: ${user['allocation']}%\nStart Date: ${user['startDate']}\nEnd Date: ${user['endDate']}\nManagement Points: ${user['mgmtPoints']}\nWork Points: ${user['workPoints']}'),
-                          trailing: IconButton(
-                            icon: Icon(user['disabled'] ? Icons.visibility_off : Icons.visibility, color: user['disabled'] ? Colors.red : Colors.green),
-                            onPressed: () => toggleUserStatus(user['docID'], user['disabled']),
-                          ),
-                        ),
-                      );
-                    },
-                  );
+            ),
+            actions: [
+              TextButton(
+                child: Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop();
                 },
               ),
-              SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    child: Text('Calculate Points'),
-                    onPressed: () {
-                      // Handle calculate points button press
-                    },
-                  ),
-                  ElevatedButton(
-                    child: Text('Change TL'),
-                    onPressed: _showChangeTLDialog,
-                  ),
-                ],
+              ElevatedButton(
+                child: Text('Add'),
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
+
+                    // Check if the user is already allocated
+                    QuerySnapshot existingAllocations = await firebaseFirestore
+                        .collection('allocated_users')
+                        .where('UserID', isEqualTo: _selectedUser)
+                        .where('ProjectID', isEqualTo: widget.projectID)
+                        .get();
+
+                    if (existingAllocations.docs.isNotEmpty) {
+                      // If the user is already allocated, show an error message
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User is already allocated to this project')));
+                    } else {
+                      // If the user is not allocated, add them
+                      firebaseFirestore.collection('allocated_users').add({
+                        'UserID': _selectedUser,
+                        'ProjectID': widget.projectID,
+                        'Allocation%': double.parse(_allocationPercentage!),
+                        'StartDate': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                        'EndDate': '',
+                        'Mgmt_Points': 0,
+                        'Work_Points': 0,
+                        'disabled': false,
+                      });
+                      Navigator.of(context).pop();
+                    }
+                  }
+                },
               ),
             ],
           ),
         ),
+        child: Icon(Icons.add),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: firebaseFirestore.collection('allocated_users').where('ProjectID', isEqualTo: widget.projectID).snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          // Ensure team lead is displayed even if no users are allocated
+          List<Map<String, dynamic>> allocatedUsers = [];
+          if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+            allocatedUsers = snapshot.data!.docs.map((doc) {
+              final docData = doc.data() as Map<String, dynamic>;
+              return {
+                'docID': doc.id,
+                'userID': docData['UserID'],
+                'userName': users.firstWhere((user) => user['userID'] == docData['UserID'], orElse: () => {'name': 'Unknown'})['name'],
+                'allocation': docData['Allocation%'],
+                'startDate': docData['StartDate'],
+                'endDate': docData['EndDate'],
+                'mgmtPoints': docData['Mgmt_Points'],
+                'workPoints': docData['Work_Points'],
+                'disabled': docData['disabled'] ?? false,
+              };
+            }).toList();
+          }
+
+          return Column(
+            children: [
+              ListTile(
+                title: Text('Team Lead: ${teamLeadName}'),
+              ),
+              Expanded(
+                child: allocatedUsers.isEmpty
+                    ? Center(child: Text('No allocated users'))
+                    : ListView.builder(
+                  itemCount: allocatedUsers.length,
+                  itemBuilder: (context, index) {
+                    Map<String, dynamic> user = allocatedUsers[index];
+                    return ExpansionTile(
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${user['userName']}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(user['disabled'] ? Icons.visibility_off : Icons.visibility),
+                            onPressed: () => toggleUserStatus(user['docID'], user['disabled']),
+                          ),
+                        ],
+                      ),
+                      children: [
+                        ListTile(
+                          title: Text('Start Date: ${user['startDate']}'),
+                        ),
+                        ListTile(
+                          title: Text('End Date: ${user['endDate']}'),
+                        ),
+                        ListTile(
+                          title: Text('Management Points: ${user['mgmtPoints']}'),
+                        ),
+                        ListTile(
+                          title: Text('Work Points: ${user['workPoints']}'),
+                        ),
+                        ListTile(
+                          title: Text('Disabled: ${user['disabled']}'),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

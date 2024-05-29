@@ -130,7 +130,7 @@ class _UserDetailsState extends State<UserDetails>
             PersonalDetails(
               userID: widget.userID,
             ),
-            ProjectAssignment()
+            ProjectAssignment(userID: widget.userID,)
           ],
         ),
       ),

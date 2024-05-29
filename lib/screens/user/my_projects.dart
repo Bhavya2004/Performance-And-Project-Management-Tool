@@ -200,16 +200,13 @@ class _MyProjectsState extends State<MyProjects> {
   }
 
   bool _shouldShowProject(Map<String, dynamic> data) {
+    if (searchText.isNotEmpty && !data['projectName'].toString().toLowerCase().contains(searchText)) {
+      return false;
+    }
     if (selectedStatuses.contains('All')) {
       return true;
     }
-    if (!selectedStatuses.contains(data['projectStatus'])) {
-      return false;
-    }
-    if (searchText.isEmpty) {
-      return true;
-    }
-    return data['projectName'].toString().toLowerCase().contains(searchText);
+    return selectedStatuses.contains(data['projectStatus']);
   }
 
   Color _getStatusColor(String status) {
