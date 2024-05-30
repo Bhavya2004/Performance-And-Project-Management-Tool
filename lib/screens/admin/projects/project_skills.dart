@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:ppmt/components/button.dart';
-import 'package:ppmt/components/snackbar.dart';
 import 'package:ppmt/constants/color.dart';
+import 'package:ppmt/screens/admin/projects/add_project_skills.dart';
+import 'package:ppmt/components/snackbar.dart';
 
 class ProjectSkillPage extends StatefulWidget {
   final Map<String, dynamic> projectData;
@@ -12,28 +12,175 @@ class ProjectSkillPage extends StatefulWidget {
   ProjectSkillPage({Key? key, required this.projectData}) : super(key: key);
 
   @override
-  _ProjectSkillPageState createState() => _ProjectSkillPageState();
+  State<ProjectSkillPage> createState() => _ProjectSkillPageState();
 }
 
 class _ProjectSkillPageState extends State<ProjectSkillPage> {
-  final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-  Map<String, bool> selectedSkills = {};
-  List<String> selectedSkillIDs = [];
-
   bool isTeamLead = false;
 
   @override
   void initState() {
     super.initState();
     checkUserRole();
-    fetchSelectedSkills();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('projects')
+            .doc(widget.projectData["projectID"])
+            .collection("skills")
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CupertinoActivityIndicator(
+                color: kAppBarColor,
+              ),
+            );
+          }
+
+          if (!snapshot.hasData || snapshot.data == null) {
+            return Center(
+              child: Text('No data available'),
+            );
+          }
+
+          List<String> skillIDs = [];
+          snapshot.data!.docs.forEach((doc) {
+            List<String> selectedSkillIDs =
+                List<String>.from(doc['selectedSkillIDs']);
+            skillIDs.addAll(selectedSkillIDs);
+          });
+
+          return FutureBuilder<List<Map<String, String>>>(
+            future: fetchSkillNames(skillIDs),
+            builder: (context, skillsSnapshot) {
+              if (skillsSnapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CupertinoActivityIndicator(
+                    color: kAppBarColor,
+                  ),
+                );
+              }
+
+              if (skillsSnapshot.hasError) {
+                return Center(
+                  child: Text('Error: ${skillsSnapshot.error}'),
+                );
+              }
+
+              if (!skillsSnapshot.hasData || skillsSnapshot.data == null) {
+                return Center(
+                  child: Text('No skills available'),
+                );
+              }
+
+              List<Map<String, String>> skills = skillsSnapshot.data!;
+
+              return ListView.builder(
+                itemCount: skills.length,
+                itemBuilder: (context, index) {
+                  String skillName = skills[index]['skillName']!;
+                  String skillID = skills[index]['skillID']!;
+
+                  return Card(
+                    margin: EdgeInsets.all(10),
+                    elevation: 5,
+                    child: ListTile(
+                      title: Text(skillName),
+                      leading: Icon(Icons.star, color: kAppBarColor),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: isTeamLead
+          ? FloatingActionButton(
+              onPressed: () async {
+                List<String> skillIDs = await fetchExistingSkillIDs();
+                String? result =
+                    await Navigator.push(context, MaterialPageRoute(
+                  builder: (context) {
+                    return AddProjectSkillPage(
+                      projectData: widget.projectData,
+                      existingSkillIDs: skillIDs,
+                    );
+                  },
+                ));
+
+                if (result != null && result.isNotEmpty) {
+                  showSnackBar(context: context, message: result);
+                }
+              },
+              child: Icon(Icons.edit),
+            )
+          : null,
+    );
+  }
+
+  Future<List<Map<String, String>>> fetchSkillNames(
+      List<String> skillIDs) async {
+    List<Map<String, String>> skills = [];
+
+    try {
+      for (String skillID in skillIDs) {
+        QuerySnapshot skillSnapshot = await FirebaseFirestore.instance
+            .collection('skills')
+            .where('skillID', isEqualTo: skillID)
+            .where('isDisabled', isEqualTo: false)
+            .get();
+
+        if (skillSnapshot.docs.isNotEmpty) {
+          Map<String, dynamic> skillData =
+              skillSnapshot.docs.first.data() as Map<String, dynamic>;
+          String skillName = skillData['skillName'];
+          skills.add({'skillID': skillID, 'skillName': skillName});
+        } else {
+          print('Skill with ID $skillID does not exist.');
+        }
+      }
+    } catch (e) {
+      print('Error fetching skill names: $e');
+    }
+
+    return skills;
+  }
+
+  Future<List<String>> fetchExistingSkillIDs() async {
+    List<String> skillIDs = [];
+    try {
+      QuerySnapshot existingSkillsSnapshot = await FirebaseFirestore.instance
+          .collection('projects')
+          .doc(widget.projectData["projectID"])
+          .collection('skills')
+          .get();
+
+      if (existingSkillsSnapshot.docs.isNotEmpty) {
+        for (var doc in existingSkillsSnapshot.docs) {
+          List<String> selectedSkillIDs =
+              List<String>.from(doc['selectedSkillIDs']);
+          skillIDs.addAll(selectedSkillIDs);
+        }
+      }
+    } catch (e) {
+      print('Error fetching existing skill IDs: $e');
+    }
+    return skillIDs;
   }
 
   Future<void> checkUserRole() async {
     try {
       String? currentUserID = FirebaseAuth.instance.currentUser?.uid;
-      DocumentSnapshot userSnapshot =
-          await firebaseFirestore.collection('users').doc(currentUserID).get();
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUserID)
+          .get();
 
       if (userSnapshot.exists) {
         setState(() {
@@ -43,137 +190,6 @@ class _ProjectSkillPageState extends State<ProjectSkillPage> {
       }
     } catch (e) {
       print('Error checking user role: $e');
-    }
-  }
-
-  Future<void> fetchSelectedSkills() async {
-    try {
-      QuerySnapshot existingSkillsSnapshot = await firebaseFirestore
-          .collection('projects')
-          .doc(widget.projectData["projectID"])
-          .collection('skills')
-          .limit(1)
-          .get();
-
-      if (existingSkillsSnapshot.docs.isNotEmpty) {
-        DocumentSnapshot existingDoc = existingSkillsSnapshot.docs.first;
-        Map<String, dynamic> data = existingDoc.data() as Map<String, dynamic>;
-        List<dynamic> skillIDs = data['selectedSkillIDs'];
-        setState(() {
-          selectedSkillIDs.addAll(skillIDs.map((id) => id.toString()));
-          selectedSkillIDs.forEach((id) {
-            selectedSkills[id] = true;
-          });
-        });
-      }
-    } catch (e) {
-      print('Error fetching selected skills: $e');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: StreamBuilder<QuerySnapshot>(
-        stream: firebaseFirestore
-            .collection('skills')
-            .orderBy('skillName')
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return Center(
-              child: CupertinoActivityIndicator(
-                color: kAppBarColor,
-              ),
-            );
-          }
-
-          List<DocumentSnapshot> sortedDocs = snapshot.data!.docs.toList();
-
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: sortedDocs.length,
-                  itemBuilder: (context, index) {
-                    DocumentSnapshot doc = sortedDocs[index];
-                    Map<String, dynamic> data =
-                        doc.data() as Map<String, dynamic>;
-                    String skillID = data['skillID'];
-                    String skillName = data['skillName'];
-
-                    return Card(
-                      margin: EdgeInsets.all(10),
-                      child: CheckboxListTile(
-                        title: Text(skillName),
-                        value: selectedSkills[skillID] ?? false,
-                        onChanged: isTeamLead
-                            ? (bool? value) {
-                                setState(() {
-                                  selectedSkills[skillID] = value ?? false;
-                                  if (value == true) {
-                                    selectedSkillIDs.add(skillID);
-                                  } else {
-                                    selectedSkillIDs.remove(skillID);
-                                  }
-                                });
-                              }
-                            : null, // Disable editing for non-lead users
-                        controlAffinity: ListTileControlAffinity.leading,
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 20),
-                if (isTeamLead) ...[
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: button(
-                      onPressed: saveSelectedSkills,
-                      buttonName: "Save",
-                      backgroundColor: CupertinoColors.black,
-                      textColor: CupertinoColors.white,
-                    ),
-                  ),
-                ],
-                SizedBox(height: 20), // Add some space after the button
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void saveSelectedSkills() async {
-    try {
-      QuerySnapshot existingSkillsSnapshot = await firebaseFirestore
-          .collection('projects')
-          .doc(widget.projectData["projectID"])
-          .collection('skills')
-          .limit(1)
-          .get();
-
-      if (existingSkillsSnapshot.docs.isNotEmpty) {
-        DocumentSnapshot existingDoc = existingSkillsSnapshot.docs.first;
-        await existingDoc.reference.update({
-          'selectedSkillIDs': selectedSkillIDs,
-        });
-      } else {
-        await firebaseFirestore
-            .collection('projects')
-            .doc(widget.projectData["projectID"])
-            .collection('skills')
-            .add({
-          'selectedSkillIDs': selectedSkillIDs,
-        });
-      }
-
-      showSnackBar(context: context, message: "Skills saved successfully");
-    } catch (e) {
-      showSnackBar(context: context, message: 'Failed to save skills: $e');
     }
   }
 }

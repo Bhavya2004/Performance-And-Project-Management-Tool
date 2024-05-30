@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,6 +16,20 @@ class Projects extends StatefulWidget {
 class _ProjectsState extends State<Projects> {
   String searchText = '';
   String _selectedStatus = 'All'; // Initialize with 'All' to show all projects
+  bool _isAdmin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfAdmin();
+  }
+
+  Future<void> _checkIfAdmin() async {
+    bool isAdmin = await checkIfAdmin();
+    setState(() {
+      _isAdmin = isAdmin;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,9 +123,9 @@ class _ProjectsState extends State<Projects> {
                     itemBuilder: (context, index) {
                       DocumentSnapshot doc = snapshot.data!.docs[index];
                       Map<String, dynamic> data =
-                      doc.data() as Map<String, dynamic>;
+                          doc.data() as Map<String, dynamic>;
                       if (_shouldShowProject(data)) {
-                        return buildCard(context, doc, data);
+                        return buildCard(context, doc, data, _isAdmin);
                       } else {
                         return SizedBox(); // Return an empty SizedBox if project should not be shown
                       }
@@ -132,7 +147,7 @@ class _ProjectsState extends State<Projects> {
   }
 
   Widget buildCard(BuildContext context, DocumentSnapshot document,
-      Map<String, dynamic> data) {
+      Map<String, dynamic> data, bool isAdmin) {
     Color cardColor = _getStatusColor(data['projectStatus']);
 
     return Card(
@@ -153,6 +168,31 @@ class _ProjectsState extends State<Projects> {
             ),
             Row(
               children: [
+                if (isAdmin)
+                  IconButton(
+                    icon: Icon(
+                      CupertinoIcons.pen,
+                      color: kEditColor,
+                    ),
+                    onPressed: () async {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddProject(
+                            totalBonus: data["totalBonus"],
+                            startDate: data["startDate"],
+                            projectName: data["projectName"],
+                            projectID: data["projectID"],
+                            managementPoints: data["managementPoints"],
+                            endDate: data["endDate"],
+                            description: data["projectDescription"],
+                            projectCreator: data["projectCreator"],
+                            projectStatus: data["projectStatus"],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 IconButton(
                   icon: Icon(
                     CupertinoIcons.info_circle_fill,
@@ -163,11 +203,10 @@ class _ProjectsState extends State<Projects> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ProjectDetails(
-                          projectData: data, // Pass the project data
+                          projectData: data,
                         ),
                       ),
                     );
-
                   },
                 ),
               ],
@@ -200,5 +239,22 @@ class _ProjectsState extends State<Projects> {
       default:
         return Colors.white;
     }
+  }
+
+  // Function to determine if the current user is an admin
+  Future<bool> checkIfAdmin() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      print(userDoc.data());
+      if (userDoc.exists) {
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        return userData['role'] == 'admin';
+      }
+    }
+    return false;
   }
 }

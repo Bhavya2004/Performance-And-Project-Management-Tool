@@ -180,7 +180,7 @@ class _AddProjectState extends State<AddProject> {
           .collection('users')
           .doc(selectedUserDocumentId)
           .get();
-      final userId = userDoc['userID'];
+      final userID = userDoc['userID'];
 
       final querySnapshot = await FirebaseFirestore.instance
           .collection('projects')
@@ -193,7 +193,7 @@ class _AddProjectState extends State<AddProject> {
 
         if (projectData != null) {
           await projectSnapshot.reference.update({
-            'teamLeadID': userId,
+            'teamLeadID': userID,
             "userAllocation": userAllocationController.text.trim().toString()
           }).then(
             (value) {
@@ -204,10 +204,15 @@ class _AddProjectState extends State<AddProject> {
               Navigator.pop(context);
             },
           );
-          // Add the team lead's ID to the allocated_users collection
-          await FirebaseFirestore.instance.collection('allocated_users').add({
-            'userID': userId,
-            'projectID': widget.projectID
+          await FirebaseFirestore.instance.collection('allocatedUser').add({
+            'userID': userID,
+            'projectID': widget.projectID,
+            'userAllocation': userAllocationController.text.trim().toString(),
+            'managementPoints': "0",
+            'workPoints': "0",
+            'startDate': getFormattedDateTime(),
+            'endDate': "",
+            'isDisabled': false,
           });
           showSnackBar(
               context: context, message: "Team Lead Selected Successfully");
@@ -596,22 +601,20 @@ class _AddProjectState extends State<AddProject> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: widget.projectID == ""
-          ? AppBar(
-              iconTheme: IconThemeData(
-                color: CupertinoColors.white,
-              ),
-              backgroundColor: kAppBarColor,
-              title: Text(
-                widget.projectID != "" ? 'Update Project' : 'Add Project',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: CupertinoColors.white,
-                ),
-              ),
-            )
-          : null,
+      appBar: AppBar(
+        iconTheme: IconThemeData(
+          color: CupertinoColors.white,
+        ),
+        backgroundColor: kAppBarColor,
+        title: Text(
+          widget.projectID != "" ? 'Update Project' : 'Add Project',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: CupertinoColors.white,
+          ),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

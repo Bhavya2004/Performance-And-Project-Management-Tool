@@ -139,7 +139,7 @@ class _MyProjectsState extends State<MyProjects> {
                     itemBuilder: (context, index) {
                       DocumentSnapshot doc = snapshot.data!.docs[index];
                       Map<String, dynamic> data =
-                          doc.data() as Map<String, dynamic>;
+                      doc.data() as Map<String, dynamic>;
                       if (_shouldShowProject(data)) {
                         return buildCard(context, doc, data);
                       } else {

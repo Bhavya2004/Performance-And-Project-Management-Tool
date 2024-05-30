@@ -11,6 +11,7 @@ import 'package:ppmt/screens/admin/master/skill/add_skill.dart';
 import 'package:ppmt/screens/admin/master/task/add_task_type.dart';
 import 'package:ppmt/screens/admin/master/task/task_type_list.dart';
 import 'package:ppmt/screens/admin/projects/add_project.dart';
+import 'package:ppmt/screens/admin/projects/add_project_skills.dart';
 import 'package:ppmt/screens/admin/users/add_user.dart';
 import 'package:ppmt/screens/admin/users/skill_level.dart';
 import 'package:ppmt/screens/admin/users/users.dart';
@@ -78,15 +79,15 @@ Map<String, Widget Function(BuildContext)> route = {
       ),
   '/point_list': (context) => PointList(),
   "/add_project": (context) => AddProject(
-    projectCreator: "",
-    description: "",
-    endDate: "",
-    managementPoints: "",
-    projectID: "",
-    projectName: "",
-    startDate: "",
-    projectStatus: "",
-    totalBonus: "",
-  ),
+        projectCreator: "",
+        description: "",
+        endDate: "",
+        managementPoints: "",
+        projectID: "",
+        projectName: "",
+        startDate: "",
+        projectStatus: "",
+        totalBonus: "",
+      ),
   '/project_list': (context) => Projects(),
 };

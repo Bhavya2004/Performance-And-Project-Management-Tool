@@ -1,9 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
-import 'package:ppmt/screens/admin/master/task/task_type_list.dart';
-import 'package:ppmt/screens/admin/projects/add_project.dart';
 import 'package:ppmt/screens/admin/projects/allocated_user.dart';
+import 'package:ppmt/screens/admin/projects/project_information.dart';
 import 'package:ppmt/screens/admin/projects/project_skills.dart';
 
 class ProjectDetails extends StatefulWidget {
@@ -19,7 +18,7 @@ class _ProjectDetailsState extends State<ProjectDetails>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final List<String> tabTitles = [
-    'Update Project',
+    'Project Information',
     'Project Skills',
     'Allocated People',
   ];
@@ -123,22 +122,16 @@ class _ProjectDetailsState extends State<ProjectDetails>
         body: TabBarView(
           controller: _tabController,
           children: [
-            AddProject(
-              projectID: projectData['projectID'],
-              projectName: projectData['projectName'],
-              description: projectData['projectDescription'],
-              startDate: projectData['startDate'],
-              endDate: projectData['endDate'],
-              projectCreator: projectData['projectCreator'],
-              projectStatus: projectData['projectStatus'],
-              managementPoints: projectData['managementPoints'],
-              totalBonus: projectData['totalBonus'],
+            ProjectInformation(
+              projectData: projectData,
             ),
             ProjectSkillPage(
               projectData: projectData,
             ),
-            AllocatedUser(projectID: projectData['projectID'],
+            AllocatedUser(
+              projectData: projectData,
             ),
+
           ],
         ),
       ),
