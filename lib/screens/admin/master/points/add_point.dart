@@ -220,10 +220,7 @@ class _AddPointState extends State<AddPoint> {
 
   void addPoints(Map<String, dynamic> pointsData) async {
     try {
-      int lastPointsID =
-          await getLastID(collectionName: "points", primaryKey: "pointsID");
-      int newPointsID = lastPointsID + 1;
-
+      // Fetch the selected task type ID
       DocumentSnapshot taskTypeSnapshot = await FirebaseFirestore.instance
           .collection("taskType")
           .where("taskTypeName", isEqualTo: selectedTaskType)
@@ -232,45 +229,53 @@ class _AddPointState extends State<AddPoint> {
           .then((snapshot) => snapshot.docs.first);
       String taskTypeID = taskTypeSnapshot["taskTypeID"];
 
+      // Determine the role based on selectedRadio
+      String role = getRoleFromRadio(selectedRadio);
+
+      // Check if a record with the same taskTypeID and role already exists
+      QuerySnapshot existingPointsSnapshot = await FirebaseFirestore.instance
+          .collection("points")
+          .where("taskTypeID", isEqualTo: taskTypeID)
+          .where("points.$role", isEqualTo: true) // Adjusted here
+          .get();
+
+      if (existingPointsSnapshot.docs.isNotEmpty) {
+        throw ("A record with the same Task Type ID and Role already exists.");
+      }
+
       // Adding selected radio button value to pointsData
       switch (selectedRadio) {
         case 1:
-          pointsData["type"] = {
-            "assignee": true,
-            "creator": false,
-            "dueTo": false
-          };
+          pointsData["assignee"] = true;
+          pointsData["creator"] = false;
+          pointsData["dueTo"] = false;
           break;
         case 2:
-          pointsData["type"] = {
-            "assignee": false,
-            "creator": true,
-            "dueTo": false
-          };
+          pointsData["assignee"] = false;
+          pointsData["creator"] = true;
+          pointsData["dueTo"] = false;
           break;
         case 3:
-          pointsData["type"] = {
-            "assignee": false,
-            "creator": false,
-            "dueTo": true
-          };
+          pointsData["assignee"] = false;
+          pointsData["creator"] = false;
+          pointsData["dueTo"] = true;
           break;
         default:
-          pointsData["type"] = {
-            "assignee": false,
-            "creator": false,
-            "dueTo": false
-          };
+          pointsData["assignee"] = false;
+          pointsData["creator"] = false;
+          pointsData["dueTo"] = false;
           break;
       }
+
+      int lastPointsID = await getLastID(collectionName: "points", primaryKey: "pointsID");
+      int newPointsID = lastPointsID + 1;
 
       await FirebaseFirestore.instance.collection("points").add({
         "pointsID": newPointsID.toString(),
         "taskTypeID": taskTypeID,
         "points": pointsData,
       });
-      showSnackBar(
-          context: context, message: "Points Calculation Added Successfully");
+      showSnackBar(context: context, message: "Points Calculation Added Successfully");
       Navigator.pop(context);
     } catch (e) {
       print("Error adding points: $e");
@@ -278,8 +283,10 @@ class _AddPointState extends State<AddPoint> {
     }
   }
 
+
   void updatePoints(String pointsID, Map<String, dynamic> pointsData) async {
     try {
+      // Fetch the selected task type ID
       DocumentSnapshot taskTypeSnapshot = await FirebaseFirestore.instance
           .collection("taskType")
           .where("taskTypeName", isEqualTo: selectedTaskType)
@@ -288,85 +295,82 @@ class _AddPointState extends State<AddPoint> {
           .then((snapshot) => snapshot.docs.first);
       String taskTypeID = taskTypeSnapshot["taskTypeID"];
 
-      final querySnapshot = await FirebaseFirestore.instance
+      // Determine the role based on selectedRadio
+      String role = getRoleFromRadio(selectedRadio);
+
+      // Check if a record with the same taskTypeID and role already exists
+      QuerySnapshot existingPointsSnapshot = await FirebaseFirestore.instance
           .collection("points")
-          .where("pointsID", isEqualTo: widget.pointsID)
+          .where("taskTypeID", isEqualTo: taskTypeID)
+          .where("points.$role", isEqualTo: true) // Adjusted here
           .get();
+
+      if (existingPointsSnapshot.docs.isNotEmpty &&
+          existingPointsSnapshot.docs.first.id != pointsID) {
+        throw ("A record with the same Task Type ID and Role already exists.");
+      }
 
       // Adding selected radio button value to pointsData
       switch (selectedRadio) {
         case 1:
-          pointsData["type"] = {
-            "assignee": true,
-            "creator": false,
-            "dueTo": false
-          };
+          pointsData["assignee"] = true;
+          pointsData["creator"] = false;
+          pointsData["dueTo"] = false;
           break;
         case 2:
-          pointsData["type"] = {
-            "assignee": false,
-            "creator": true,
-            "dueTo": false
-          };
+          pointsData["assignee"] = false;
+          pointsData["creator"] = true;
+          pointsData["dueTo"] = false;
           break;
         case 3:
-          pointsData["type"] = {
-            "assignee": false,
-            "creator": false,
-            "dueTo": true
-          };
+          pointsData["assignee"] = false;
+          pointsData["creator"] = false;
+          pointsData["dueTo"] = true;
           break;
         default:
-          pointsData["type"] = {
-            "assignee": false,
-            "creator": false,
-            "dueTo": false
-          };
+          pointsData["assignee"] = false;
+          pointsData["creator"] = false;
+          pointsData["dueTo"] = false;
           break;
       }
 
-      if (querySnapshot.docs.isNotEmpty) {
-        final pointsSnapShot = querySnapshot.docs.first;
-        final taskTypeData = pointsSnapShot.data() as Map<String, dynamic>?;
+      await FirebaseFirestore.instance
+          .collection("points")
+          .doc(pointsID)
+          .update({
+        "taskTypeID": taskTypeID,
+        "points": pointsData,
+      });
 
-        if (taskTypeData != null) {
-          await pointsSnapShot.reference.update({
-            "taskTypeID": taskTypeID,
-            "points": pointsData,
-          });
-        } else {
-          throw ("Document data is null or empty");
-        }
-      } else {
-        throw ("taskType with ID ${widget.pointsID} not found.");
-      }
+      showSnackBar(
+          context: context, message: "Points Calculation Updated Successfully");
+      Navigator.pop(context);
     } catch (e) {
       print("Error updating points: $e");
       showSnackBar(context: context, message: "Error updating points: $e");
     }
-
-    showSnackBar(
-        context: context, message: "Points Calculation Updated Successfully");
-    Navigator.pop(context);
   }
+
+
+  String getRoleFromRadio(int selectedRadio) {
+    switch (selectedRadio) {
+      case 1:
+        return "assignee";
+      case 2:
+        return "creator";
+      case 3:
+        return "dueTo";
+      default:
+        throw ("Invalid role selection");
+    }
+  }
+
+
 
   void submit() async {
     if (selectedTaskType == null) {
       showSnackBar(
           context: context, message: "Please select a Task Type first!");
-      return;
-    }
-
-    QuerySnapshot skillSnapshot = await FirebaseFirestore.instance
-        .collection("points")
-        .where("taskTypeName", isEqualTo: selectedTaskType)
-        .get();
-
-    if (widget.document == null && skillSnapshot.docs.isNotEmpty) {
-      showSnackBar(
-        context: context,
-        message: "Skill '$selectedTaskType' already exists!",
-      );
       return;
     }
 
@@ -376,12 +380,17 @@ class _AddPointState extends State<AddPoint> {
       Map<String, dynamic> taskTypeData = {};
 
       for (int j = 0; j < complexityList.length; j++) {
-        int points = int.tryParse(controllersList[i][j].text) ?? 0;
+        double points = double.tryParse(controllersList[i][j].text) ?? 0.0;
         taskTypeData[complexityList[j]["complexityName"] as String] = points;
       }
 
       pointsData[skillList[i]["skillID"] as String] = taskTypeData;
     }
+
+    // Add additional fields
+    pointsData['assignee'] = selectedRadio == 1;
+    pointsData['creator'] = selectedRadio == 2;
+    pointsData['dueTo'] = selectedRadio == 3;
 
     if (widget.document != null) {
       updatePoints(widget.document!.id, pointsData);
@@ -507,7 +516,7 @@ class _AddPointState extends State<AddPoint> {
                         TableCell(
                           child: TextField(
                             controller: controllersList[i][j],
-                            keyboardType: TextInputType.number,
+                            keyboardType: TextInputType.numberWithOptions(decimal: true),
                             decoration: InputDecoration(
                               border: OutlineInputBorder(),
                             ),

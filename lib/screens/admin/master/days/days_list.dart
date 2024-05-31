@@ -12,6 +12,7 @@ class DaysList extends StatefulWidget {
   State<DaysList> createState() => _DaysListState();
 }
 
+
 class _DaysListState extends State<DaysList> {
   @override
   Widget build(BuildContext context) {
@@ -45,8 +46,7 @@ class _DaysListState extends State<DaysList> {
               return FutureBuilder<Map<String, dynamic>>(
                 future: fetchSkillData(skillID: document["skillID"]),
                 builder: (context, skillSnapshot) {
-                  if (skillSnapshot.connectionState ==
-                      ConnectionState.waiting) {
+                  if (skillSnapshot.connectionState == ConnectionState.waiting) {
                     return SizedBox(); // Return an empty SizedBox if no skill data found
                   }
 
@@ -68,34 +68,39 @@ class _DaysListState extends State<DaysList> {
                             fontSize: 16,
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () => deleteRecord(document.id),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AddDays(
+                                      document: document,
+                                      daysID: document["daysID"],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () => deleteRecord(document.id),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                     children: [
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AddDays(
-                                  document: document,
-                                  daysID: document["daysID"],
-                                ),
-                              ),
-                            );
-                          },
-                          child: DataTable(
-                            sortAscending: true,
-                            columnSpacing: 30,
-                            border: TableBorder.all(),
-                            columns: columns,
-                            rows: rows,
-                          ),
+                        child: DataTable(
+                          sortAscending: true,
+                          columnSpacing: 30,
+                          border: TableBorder.all(),
+                          columns: columns,
+                          rows: rows,
                         ),
                       ),
                     ],

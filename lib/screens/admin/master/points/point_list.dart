@@ -37,16 +37,16 @@ class _PointListState extends State<PointList> {
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (BuildContext context, int index) {
               var document = snapshot.data!.docs[index];
-              Map<String, dynamic> pointsData = document["points"];
+              var data = document.data() as Map<String, dynamic>;
+              Map<String, dynamic> pointsData = data["points"];
               List<DataColumn> columns = buildColumns(pointsData);
               List<DataRow> rows = [];
               buildRows(pointsData, rows);
 
               return FutureBuilder<Map<String, dynamic>>(
-                future: fetchTaskTypeData(taskTypeID: document["taskTypeID"]),
+                future: fetchTaskTypeData(taskTypeID: data["taskTypeID"].toString()),
                 builder: (context, taskTypeSnapShot) {
-                  if (taskTypeSnapShot.connectionState ==
-                      ConnectionState.waiting) {
+                  if (taskTypeSnapShot.connectionState == ConnectionState.waiting) {
                     return SizedBox();
                   }
 
@@ -56,6 +56,9 @@ class _PointListState extends State<PointList> {
 
                   var taskTypeData = taskTypeSnapShot.data!;
                   var taskTypeName = taskTypeData['taskTypeName'];
+
+                  // Determine the role
+                  String role = getRole(pointsData);
 
                   return ExpansionTile(
                     title: Row(
@@ -68,34 +71,40 @@ class _PointListState extends State<PointList> {
                             fontSize: 16,
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () => deleteRecord(document.id),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AddPoint(
+                                      document: document,
+                                      pointsID: data["pointsID"],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () => deleteRecord(document.id),
+                            ),
+                          ],
                         ),
                       ],
                     ),
+                    subtitle: Text(role),
                     children: [
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AddPoint(
-                                  document: document,
-                                  pointsID: document["pointsID"],
-                                ),
-                              ),
-                            );
-                          },
-                          child: DataTable(
-                            sortAscending: true,
-                            columnSpacing: 30,
-                            border: TableBorder.all(),
-                            columns: columns,
-                            rows: rows,
-                          ),
+                        child: DataTable(
+                          sortAscending: true,
+                          columnSpacing: 30,
+                          border: TableBorder.all(),
+                          columns: columns,
+                          rows: rows,
                         ),
                       ),
                     ],
@@ -109,12 +118,21 @@ class _PointListState extends State<PointList> {
     );
   }
 
+  String getRole(Map<String, dynamic> pointsData) {
+    print(pointsData); // Debugging line
+    if (pointsData.containsKey('assignee') && pointsData['assignee'] == true) {
+      return 'Assignee';
+    } else if (pointsData.containsKey('creator') && pointsData['creator'] == true) {
+      return 'Creator';
+    } else if (pointsData.containsKey('dueTo') && pointsData['dueTo'] == true) {
+      return 'Due To';
+    }
+    return 'N/A';
+  }
+
   void deleteRecord(String documentId) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('points')
-          .doc(documentId)
-          .delete();
+      await FirebaseFirestore.instance.collection('points').doc(documentId).delete();
       showSnackBar(context: context, message: "Record Deleted Successfully");
     } catch (e) {
       showSnackBar(context: context, message: "Failed to Delete Record");
@@ -150,15 +168,11 @@ class _PointListState extends State<PointList> {
     var complexityNames = pointsData.entries.first.value.keys.toList();
     List<DataColumn> columns = [
       DataColumn(
-        label: Text(
-          'Task Type',
-        ),
+        label: Text('Task Type'),
       ),
       for (var complexityName in complexityNames)
         DataColumn(
-          label: Text(
-            complexityName,
-          ),
+          label: Text(complexityName),
         ),
     ];
     return columns;

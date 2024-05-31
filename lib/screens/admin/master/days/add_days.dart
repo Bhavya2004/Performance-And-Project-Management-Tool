@@ -141,7 +141,7 @@ class _AddDaysState extends State<AddDays> {
                   complexityList[j]["complexityName"] as String;
               var value = levelData[complexityName];
               if (value is int || value is double) {
-                controllersList[i][j].text = value.toString();
+                controllersList[i][j].text = value.toStringAsFixed(2);
               } else {
                 controllersList[i][j].text = "0";
               }
@@ -239,7 +239,7 @@ class _AddDaysState extends State<AddDays> {
       Map<String, dynamic> levelData = {};
 
       for (int j = 0; j < complexityList.length; j++) {
-        int days = int.tryParse(controllersList[i][j].text) ?? 0;
+        double days = double.tryParse(controllersList[i][j].text) ?? 0;
         levelData[complexityList[j]["complexityName"] as String] = days;
       }
 
