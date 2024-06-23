@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ppmt/constants/color.dart';
@@ -17,11 +18,33 @@ class _MyProjectsState extends State<MyProjects> {
   String searchText = '';
   Set<String> selectedStatuses = {'All'};
   String userId = '';
+  bool isTeamLead = false;
+  final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
 
   @override
   void initState() {
     super.initState();
     print(widget.userID);
+  }
+
+  Future<void> checkUserRole() async {
+    try {
+      String? currentUserID = FirebaseAuth.instance.currentUser?.uid;
+      if (currentUserID != null) {
+        DocumentSnapshot userSnapshot = await firebaseFirestore
+            .collection('users')
+            .doc(currentUserID)
+            .get();
+
+        if (userSnapshot.exists) {
+          setState(() {
+            isTeamLead = userSnapshot['userID'] == widget.userID;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error checking user role: $e');
+    }
   }
 
   @override
@@ -122,29 +145,53 @@ class _MyProjectsState extends State<MyProjects> {
             ),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
+                stream: isTeamLead
+                    ? FirebaseFirestore.instance
                     .collection('projects')
                     .where('teamLeadID', isEqualTo: widget.userID)
+                    .snapshots()
+                    : FirebaseFirestore.instance
+                    .collection('allocatedUser')
+                    .where('userID', isEqualTo: widget.userID)
                     .snapshots(),
                 builder: (context, snapshot) {
+                  print("object");
                   if (!snapshot.hasData) {
+                    print("object not found");
+
                     return Center(
                       child: CupertinoActivityIndicator(
                         color: kAppBarColor,
                       ),
                     );
                   }
+                  print(snapshot.data!.docs.length);
                   return ListView.builder(
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {
                       DocumentSnapshot doc = snapshot.data!.docs[index];
-                      Map<String, dynamic> data =
-                      doc.data() as Map<String, dynamic>;
-                      if (_shouldShowProject(data)) {
-                        return buildCard(context, doc, data);
-                      } else {
-                        return SizedBox();
-                      }
+                      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+                      print("$data-----------");
+
+                      return FutureBuilder<Map<String, dynamic>>(
+                        future: _fetchProjectData(data["projectID"]),
+                        builder: (context, projectSnapshot) {
+                          if (projectSnapshot.connectionState == ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          } else if (projectSnapshot.hasError) {
+                            return Text('Error: ${projectSnapshot.error}');
+                          } else if (!projectSnapshot.hasData) {
+                            return Text('No project data found');
+                          }
+
+                          Map<String, dynamic> mapData = projectSnapshot.data!;
+                          if (_shouldShowProject(data)) {
+                            return buildCard(context, doc, mapData);
+                          } else {
+                            return SizedBox();
+                          }
+                        },
+                      );
                     },
                   );
                 },
@@ -158,7 +205,25 @@ class _MyProjectsState extends State<MyProjects> {
 
   Widget buildCard(BuildContext context, DocumentSnapshot document,
       Map<String, dynamic> data) {
-    Color cardColor = _getStatusColor(data['projectStatus']);
+    String status="In Progress";
+
+    FirebaseFirestore.instance
+        .collection('projects')
+        .where('projectID', isEqualTo: data["projectID"])
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      // Handle the results of the query
+      if (querySnapshot.docs.isNotEmpty) {
+        // Process the data
+        status= querySnapshot.docs[0]["projectStatus"];
+      } else {
+        print("No documents found");
+      }
+    }).catchError((error) {
+      print("Error getting documents: $error");
+    });
+    print("-------------$data");
+    Color cardColor = _getStatusColor(status);
     return Card(
       margin: EdgeInsets.all(10),
       color: cardColor,
@@ -184,9 +249,10 @@ class _MyProjectsState extends State<MyProjects> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProjectDetails(
-                          projectData: data,
-                        ),
+                        builder: (context) =>
+                            ProjectDetails(
+                              projectData: data,
+                            ),
                       ),
                     );
                   },
@@ -200,7 +266,8 @@ class _MyProjectsState extends State<MyProjects> {
   }
 
   bool _shouldShowProject(Map<String, dynamic> data) {
-    if (searchText.isNotEmpty && !data['projectName'].toString().toLowerCase().contains(searchText)) {
+    if (searchText.isNotEmpty &&
+        !data['projectName'].toString().toLowerCase().contains(searchText)) {
       return false;
     }
     if (selectedStatuses.contains('All')) {
@@ -220,5 +287,24 @@ class _MyProjectsState extends State<MyProjects> {
       default:
         return Colors.white;
     }
+  }
+}
+
+Future<Map<String, dynamic>> _fetchProjectData(String projectID) async {
+  try {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('projects')
+        .where('projectID', isEqualTo: projectID)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      return querySnapshot.docs[0].data() as Map<String, dynamic>;
+    } else {
+      print("No documents found");
+      return {};
+    }
+  } catch (error) {
+    print("Error getting documents: $error");
+    throw error;
   }
 }
